@@ -201,6 +201,8 @@ a ~new~ change which would be a sibling to the prior child.
 - abandon : to throw things away from the WC
 - split : to interactively create multiple changes from WC
 
+*** Branching and Merging
+
 *** Configuration
 
 *** Resources
