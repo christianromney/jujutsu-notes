@@ -201,11 +201,46 @@ a ~new~ change which would be a sibling to the prior child.
 - abandon : to throw things away from the WC
 - split : to interactively create multiple changes from WC
 
+*** The Revset Language
+
+Revsets are a functional language for specifying a range of commits. Most
+commands support a ~-r~ parameter for specifying revsets.
+
+**** Symbols
+- @ :: the working copy
+
+**** Operators
+- x & y :: changes in both x and y
+- x | y :: changes in either x or y
+- ::x :: ancestors of x
+- x:: :: descendants of x
+
+**** Functions
+- root() :: the root commit of the repository
+- all() :: all /visible/ changes
+- mine() :: all changes authored by the current user
+- parents(x) :: parents of change x
+- ancestors(x, [limit]) :: ancestors of x, optionally with a limit
+- heads(x) :: commits in x that are not parents of other commits (leaves)
+- description(x) :: commits that have x in the description
+
 *** Branching and Merging
+All ~jj~ workflows use anonymous branches by default (detached HEADs in Git
+parlance). Since every change is in essence a branch, there's no need to name
+branches to accomplish every day tasks. Similarly, merging is just creating a
+~new~ change with two (or more) parents.
+
+#+begin_src fish
+jj new p1 p2 -m "The new change that merges p1 and p2"
+#+end_src
+
+The new command has a lot of power: it can insert arbitrary changes, including
+merges, at any point in the history.
+
+*** Rebasing
+
 
 *** Configuration
 
 *** Resources
 - [[https://steveklabnik.github.io/jujutsu-tutorial/][Steve Klabnik's Tutorial]]
-*** Observations
--
