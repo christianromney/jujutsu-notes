@@ -169,8 +169,33 @@ within a single file.
 
 **** Edit Workflow
 
+***** Rewriting Ancestry
+In this workflow, we edit the change we want to commit to anywhere in the
+history. One way to do this is to add new commits in the /past/.
 
+#+begin_src fish
+jj new -B @ -m "Pretend we did this earlier"
+#+end_src
 
+The ~-B~ flag means /before/ the named change. The output of this command shows
+"Rebased 1 descendant commits," because the working copy must be a child of the
+newly inserted change. You'll notice the working copy ~@~ is now at that commit.
+
+Any modifications we make at this point are to the earlier (but current) change
+and will trigger further rebases.
+
+***** Editing Arbitrary Changes
+
+When we're ready to go back to the future, we can either ~edit~ the change with
+the right change/commit id or use the ~next~ command.
+
+#+begin_src fish
+jj next --edit
+#+end_src
+
+Next moves the working copy to the child of the current change. We must supply
+the ~--edit~ argument to edit the pre-existing change. Otherwise, next will create
+a ~new~ change which would be a sibling to the prior child.
 
 **** Miscellaneous Commands
 - abandon : to throw things away from the WC
