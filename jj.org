@@ -129,12 +129,52 @@ jj diff
 There are two popular alternative workflows for jujutsu: the squash and edit
 workflows.
 
+
 **** Squash Workflow
-- describe
-- new
--
+***** Create the parent (target)
+First create a new change and describe it.
+
+#+begin_src fish
+jj new
+jj describe -m "Add some feature"
+#+end_src
+
+This change is empty, but has a description. It will be the logical target of
+our curated changes.
+
+***** Create the working copy (staging area)
+
+Next, create a new empty change for our working copy.
+
+#+begin_src fish
+jj new
+# ... add/remove/modify files ...
+#+end_src
+
+Begin modifying files. Build changes up in the working copy until you've
+satisfied what you described in the first step.
+
+***** Squash Changes
+
+Finally, squash those changes to push them down to described change.
+
+#+begin_src fish
+jj squash # everything, or...
+jj squash path/to/file # just certain files, or...
+jj squash -i # interactively squash certain "hunks"
+#+end_src
+
+The interactive version of the command allows for more fine-grained control even
+within a single file.
 
 **** Edit Workflow
+
+
+
+
+**** Miscellaneous Commands
+- abandon : to throw things away from the WC
+- split : to interactively create multiple changes from WC
 
 *** Configuration
 
