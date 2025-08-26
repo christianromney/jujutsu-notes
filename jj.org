@@ -1,0 +1,260 @@
+* Jujutsu Workflow Walkthroughs
+** Installation and Setup
+Install jujutsu with Homebrew.
+
+#+begin_src fish
+brew install jujutsu
+#+end_src
+
+Configure basic user information with the ~config~ command. The ~--user~ flag sets
+the configuration value for the logged in user. The ~--repo~ can be used to
+override that value on a per-repository basis.
+
+#+begin_src fish
+jj config set --user user.name "Christian Romney"
+jj config set --user user.email "christian.romney@nubank.com.br"
+#+end_src
+
+You can also specify a command to run when ~jj~ is invoked with no arguments. By
+default, this is the ~log~ command, but you can change this configuration.
+
+#+begin_src fish
+jj config set --user ui.default-command status
+#+end_src
+
+Now typing only ~jj~ will show the equivalent of ~jj status~.
+** Starting New Work
+*** Initialization
+Before we can use jujutsu to version work, we must initialize a repository.
+
+#+begin_src fish
+jj git init
+#+end_src
+
+Jujutsu was designed to support different backends to perform lower level storage operations.
+The ~git~ backend is currently the only production-ready implementation.
+
+View the status of your repository with the ~status~ command.
+
+#+begin_src fish
+jj status
+#+end_src
+
+Your working copy (~@~) should have no changes nor any description set. You should
+see one parent (~@-~) commit which is the empty commit whose commit hash
+is 00000000. Each jujutsu commit is associated with a commit hash based on its
+content (like Git) as well as a change id which is a stable name for a logical
+change. This change id immediately precedes the commit hash.
+
+**** Changes, Commits, and thr Working Copy
+One way to think of the difference between a Change and a commit is that a
+Change represents a desired unit of alteration. It's your complete set of
+intended modifications. Commits, on the other hand, are the low-level mechanical
+increments we take to effect a change. Many commits are created passively.
+Unlike git, where the user must signal a specific intent to memorialize
+modifications, jujutsu creates commits as side-effects to most ~jj~ commands.
+
+Even viewing the status of the repository will create a new commit /if there are
+alterations in the state of the Working Copy/. Jujutsu does this to eliminate the
+need to think about staging work regularly. All pending work is automatically
+committed on every jujutsu command. This allows the developer to recover any
+prior state easily (via ~undo~ and ~redo~), at the small expense of more commits.
+
+As one might expect, jujutsu also provides tools to keep a change's history tidy.
+*** Versioning Work
+Start new work by creating a new Change with the ~new~ command.
+
+#+begin_src fish
+jj new
+#+end_src
+
+It's good practice to ~describe~ the work with a message.
+
+#+begin_src fish
+jj describe -m "Add README documentation"
+#+end_src
+
+Because it's so common to perform both of these actions in succession, the new
+command supports adding a description in one step.
+
+#+begin_src fish
+jj new -m "Add README documentation"
+#+end_src
+
+You will notice the new commit has a new change id. The minimum number of
+characters needed to identify a change id are highlighted. As ~new~ changes branch
+off prior ones, additional characters may be appended. Notice how the commit
+hash of the parent of the working copy (~@-~) is the same as the initial working
+copy hash when the repository was created.
+
+The ~log~ command displays this history neatly.
+
+#+begin_src fish
+jj log
+#+end_src
+
+We first see the current change which has a description but no content. Next, we
+see the parent which represented the new, empty repository. Finally we have the
+empty, root commit. Let's describe the initial state.
+
+#+begin_src fish
+jj describe -m "Initial empty repository" @-
+#+end_src
+
+The last argument to the ~describe~ command is a /REVSET/, which identifies a point
+in the project's history. In this case, we use the shorthand ~@-~ which identifies
+the parent (-) of the working copy (@). We can back up generations by appending
+more (-) signs, so that ~@--~ is the grandparent. View the log to see the new
+description reflected in the history.
+
+Since we plan to make a series of modifications, it's a good idea to create a
+new ~bookmark~ for this work. A bookmark is nothing more than a user-assigned
+label for a commit. It is analogous to a branch in Git. jujutsu uses different
+names for its commands when the concept has important differences from its Git
+counterpart. Later we will show how jujutsu and Git interoperate.
+
+#+begin_src fish
+jj bookmark create -r@ docs
+#+end_src
+
+The status command shows the new bookmark after the commit hash.
+
+Make some changes to ~README.md~ then run ~jj~. You can see that the working copy
+changes are added automatically. Execute the ~diff~ command to view the details.
+
+#+begin_src fish
+jj diff
+#+end_src
+
+*** Workflows
+There are two popular alternative workflows for jujutsu: the squash and edit
+workflows.
+**** Squash Workflow
+***** Create the parent (target)
+First create a new change and describe it.
+
+#+begin_src fish
+jj new
+jj describe -m "Add some feature"
+#+end_src
+
+This change is empty, but has a description. It will be the logical target of
+our curated changes.
+
+***** Create the working copy (staging area)
+
+Next, create a new empty change for our working copy.
+
+#+begin_src fish
+jj new
+# ... add/remove/modify files ...
+#+end_src
+
+Begin modifying files. Build changes up in the working copy until you've
+satisfied what you described in the first step.
+
+***** Squash Changes
+
+Finally, squash those changes to push them down to described change.
+
+#+begin_src fish
+jj squash # everything, or...
+jj squash path/to/file # just certain files, or...
+jj squash -i # interactively squash certain "hunks"
+#+end_src
+
+The interactive version of the command allows for more fine-grained control even
+within a single file.
+
+**** Edit Workflow
+***** Rewriting Ancestry
+In this workflow, we edit the change we want to commit to anywhere in the
+history. One way to do this is to add new commits in the /past/.
+
+#+begin_src fish
+jj new -B @ -m "Pretend we did this earlier"
+#+end_src
+
+The ~-B~ flag means /before/ the named change. The output of this command shows
+"Rebased 1 descendant commits," because the working copy must be a child of the
+newly inserted change. You'll notice the working copy ~@~ is now at that commit.
+
+Any modifications we make at this point are to the earlier (but current) change
+and will trigger further rebases.
+
+***** Editing Arbitrary Changes
+When we're ready to go back to the future, we can either ~edit~ the change with
+the right change/commit id or use the ~next~ command.
+
+#+begin_src fish
+jj next --edit
+#+end_src
+
+Next moves the working copy to the child of the current change. We must supply
+the ~--edit~ argument to edit the pre-existing change. Otherwise, next will create
+a ~new~ change which would be a sibling to the prior child.
+
+**** Miscellaneous Commands
+- abandon : to throw things away from the WC
+- split : to interactively create multiple changes from WC
+
+*** The Revset Language
+Revsets are a functional language for specifying a range of commits. Most
+commands support a ~-r~ parameter for specifying revsets.
+**** Symbols
+- @ :: the working copy
+
+**** Operators
+- x & y :: changes in both x and y
+- x | y :: changes in either x or y
+- ::x :: ancestors of x
+- x:: :: descendants of x
+
+**** Functions
+- root() :: the root commit of the repository
+- all() :: all /visible/ changes
+- mine() :: all changes authored by the current user
+- parents(x) :: parents of change x
+- ancestors(x, [limit]) :: ancestors of x, optionally with a limit
+- heads(x) :: commits in x that are not parents of other commits (leaves)
+- description(x) :: commits that have x in the description
+
+Consult the full revset language documentation.
+*** Branching and Merging
+All ~jj~ workflows use anonymous branches by default (detached HEADs in Git
+parlance). Since every change is in essence a branch, there's no need to name
+branches to accomplish every day tasks. Similarly, merging is just creating a
+~new~ change with two (or more) parents.
+
+#+begin_src fish
+jj new p1 p2 -m "The new change that merges p1 and p2"
+#+end_src
+
+The new command has a lot of power: it can insert arbitrary changes, including
+merges, at any point in the history.
+
+*** Configuration
+Use the jj ~config~ command to set configuration options in jujutsu. We have
+already used this command to configure the name and email of the current user.
+
+The config command has two sub-commands, ~set~ and ~get~, that do what the name
+implies. Configuration values can be set for a specific repository with the
+~--repo~ switch, or for the current user with the ~--user~ switch.
+
+Let's also prepare to work with remote Git repositories by eliminating the need
+to pass the ~--allow-new~ (or ~-N~) argument every time we push a new bookmark.
+
+#+begin_src fish
+jj config set --user git.push-new-bookmarks true
+#+end_src
+
+Through configuration you can control how jj displays information as well as its
+behavior during certain operations. Besides simple values, jj also has a
+[[https://jj-vcs.github.io/jj/latest/templates/][templating language]] which can be used to set default commit messages and format
+output. Consult the [[https://jj-vcs.github.io/jj/latest/config/][configuration documentation]] for the full set of options.
+
+*** Rebasing
+
+
+*** Resources
+- [[https://steveklabnik.github.io/jujutsu-tutorial/][Steve Klabnik's Tutorial]]
