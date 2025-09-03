@@ -253,8 +253,24 @@ behavior during certain operations. Besides simple values, jj also has a
 [[https://jj-vcs.github.io/jj/latest/templates/][templating language]] which can be used to set default commit messages and format
 output. Consult the [[https://jj-vcs.github.io/jj/latest/config/][configuration documentation]] for the full set of options.
 
-*** Rebasing
+*** Working with Remote Git Repositories
+We'll use Github to demonstrate interop with a remote Git repository.
 
+#+begin_src fish
+jj git remote add origin git@github.com:christianromney/jujutsu-notes.git
+#+end_src
+
+Git workflows are branch-oriented. In jujutsu, a branch is called a bookmark and
+is merely a label pointing at a change. The primary difference between a
+bookmark name and a change id is that a developer chooses the former and jujutsu
+chooses the latter.
+
+Bookmarks have some other capabilities as well, but this simplified mental model
+de-mystifies bookmarks.
+
+Let's point
 
 *** Resources
+- [[https://jj-vcs.github.io/jj/latest/][jj documentation]]
 - [[https://steveklabnik.github.io/jujutsu-tutorial/][Steve Klabnik's Tutorial]]
+- [[https://jj-for-everyone.github.io/introduction.html][jujutsu for Everyone]]
