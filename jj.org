@@ -268,7 +268,21 @@ chooses the latter.
 Bookmarks have some other capabilities as well, but this simplified mental model
 de-mystifies bookmarks.
 
-Let's point
+Let's create a new bookmark at the working copy and push it to the origin.
+
+#+begin_src fish
+jj bookmark create main -r @
+jj git push --bookmark main --remote origin
+#+end_src
+
+Since the bookmark is now part of an externally visible Git branch, jujutsu
+marks the change where the bookmark is pointing as immutable. This prevents
+breaking history for others. A new, empty, undescribed commit is also created
+for the working copy.
+
+We can make further edits, and they will all be part of the working copy. Once
+we're ready to send them upstream, we can move the bookmark to our new commit
+and push the bookmark.
 
 *** Resources
 - [[https://jj-vcs.github.io/jj/latest/][jj documentation]]
