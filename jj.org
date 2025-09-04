@@ -31,8 +31,9 @@ Before we can use jujutsu to version work, we must initialize a repository.
 jj git init
 #+end_src
 
-Jujutsu was designed to support different backends to perform lower level storage operations.
-The ~git~ backend is currently the only production-ready implementation.
+Jujutsu was designed to support different backends to perform lower level
+storage operations. The ~git~ backend is currently the only production-ready
+implementation.
 
 View the status of your repository with the ~status~ command.
 
@@ -266,7 +267,7 @@ bookmark name and a change id is that a developer chooses the former and jujutsu
 chooses the latter.
 
 Bookmarks have some other capabilities as well, but this simplified mental model
-de-mystifies bookmarks.
+de-mystifies them.
 
 Let's create a new bookmark at the working copy and push it to the origin.
 
@@ -345,7 +346,7 @@ in combination with the revset language to view as much of the history as you li
 jj log --revisions 'all()'
 #+end_src
 
-For example, the '~all()~' function shows the complete history.
+For example, the ~all()~ function shows the complete history.
 
 #+begin_example
 @  wurtosxt christian.a.romney@gmail.com 2025-09-04 14:49:42 3600f4d3
@@ -381,6 +382,73 @@ The rebase command is very powerful. It can act on multiple lineages at once,
 whether on a single commit or all of its descendants. Take time to read through
 the ~rebase~ documentation (~jj rebase --help~).
 
+**** Merging
+Now let's branch off our parent commit to create a parallel development line
+that is a sibling to our working copy.
+
+#+begin_src fish
+jj new @-
+jj describe -m "Describe the absorb command" # something we'll do later
+#+end_src
+
+This has the side effect of editing that new sideline. This is analogous to the
+Git command ~git checkout -b~. Here's the current branch state:
+
+#+begin_example
+@  nyzqxvsv christian.a.romney@gmail.com 2025-09-04 19:00:06 c195a561
+│  (empty) Describe the absorb command
+│ ○  runwmuks christian.a.romney@gmail.com 2025-09-04 19:05:47 370ebda8
+├─╯  Describe merging remote repository commits
+◆  wurtosxt christian.a.romney@gmail.com 2025-09-04 14:50:43 main 54f36fc9
+│  Describe rebasing local work on remote changes
+~
+#+end_example
+
+We can return to our prior line by editing it:
+
+#+begin_src fish
+jj edit runwmuks
+#+end_src
+
+The log confirms it.
+
+#+begin_example
+@  runwmuks christian.a.romney@gmail.com 2025-09-04 19:10:15 77d3dcdb
+│  Describe merging remote repository commits
+│ ○  nyzqxvsv christian.a.romney@gmail.com 2025-09-04 19:00:06 c195a561
+├─╯  (empty) Describe the absorb command
+◆  wurtosxt christian.a.romney@gmail.com 2025-09-04 14:50:43 main 54f36fc9
+│  Describe rebasing local work on remote changes
+~
+#+end_example
+
+Now we'll make another edit directly on Github which we'll merge into both
+branches. First we'll need to fetch from origin.
+
+#+begin_src fish
+jj git fetch
+#+end_src
+
+The new state of the repository is shown below.
+
+#+begin_example
+@  runwmuks christian.a.romney@gmail.com 2025-09-04 19:30:04 3df228b4
+│  Describe merging remote repository commits
+│ ◆  tqppyslv christian.romney@nubank.com.br 2025-09-04 19:29:22 main 063bb9b1
+├─╯  Add link to JJ Intro and Patterns
+│ ○  nyzqxvsv christian.a.romney@gmail.com 2025-09-04 19:00:06 c195a561
+├─╯  (empty) Describe the absorb command
+◆  wurtosxt christian.a.romney@gmail.com 2025-09-04 14:50:43 54f36fc9
+│  Describe rebasing local work on remote changes
+~
+#+end_example
+
+We can merge the changes from main into the working copy by creating a new
+commit that has both as parents.
+
+#+begin_src fish
+jj new runwmuks main
+#+end_src
 *** Resources
 - [[https://jj-vcs.github.io/jj/latest/][jj documentation]]
 - [[https://steveklabnik.github.io/jujutsu-tutorial/][Steve Klabnik's Tutorial]]
