@@ -296,3 +296,4 @@ shared history is protected by making it immutable.
 - [[https://jj-vcs.github.io/jj/latest/][jj documentation]]
 - [[https://steveklabnik.github.io/jujutsu-tutorial/][Steve Klabnik's Tutorial]]
 - [[https://jj-for-everyone.github.io/introduction.html][jujutsu for Everyone]]
+- [[https://github.com/jj-vcs/jj][jujutsu Github]]
