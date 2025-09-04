@@ -449,8 +449,41 @@ commit that has both as parents.
 #+begin_src fish
 jj new runwmuks main
 #+end_src
+
+Notice we can mix change ids and bookmark names. We could also use a commit id
+if we wanted; jj is flexible that way. The repository state now looks like this:
+
+#+begin_example
+@    wulwmvrz christian.a.romney@gmail.com 2025-09-04 19:33:26 aa60410e
+├─╮  (empty) (no description set)
+│ ◆  tqppyslv christian.romney@nubank.com.br 2025-09-04 19:29:22 main 063bb9b1
+│ │  Add link to JJ Intro and Patterns
+○ │  runwmuks christian.a.romney@gmail.com 2025-09-04 19:33:26 6d3e0457
+├─╯  Describe merging remote repository commits
+│ ○  nyzqxvsv christian.a.romney@gmail.com 2025-09-04 19:00:06 c195a561
+├─╯  (empty) Describe the absorb command
+◆  wurtosxt christian.a.romney@gmail.com 2025-09-04 14:50:43 54f36fc9
+│  Describe rebasing local work on remote changes
+~
+#+end_example
+
+Let's describe the latest change before merging the main line into the absorb
+branch.
+
+#+begin_src fish
+jj describe -m "Continue describing merges"
+#+end_src
+
+Now we can create a new change with both the link and absorb lines merged:
+
+#+begin_src fish
+jj new tq ny -m "Merge intro and patterns into absorb"
+#+end_src
+
 *** Resources
 - [[https://jj-vcs.github.io/jj/latest/][jj documentation]]
 - [[https://steveklabnik.github.io/jujutsu-tutorial/][Steve Klabnik's Tutorial]]
 - [[https://jj-for-everyone.github.io/introduction.html][jujutsu for Everyone]]
 - [[https://github.com/jj-vcs/jj][jujutsu Github]]
+- [[https://kubamartin.com/posts/introduction-to-the-jujutsu-vcs/][JJ Intro and Patterns]]
+
