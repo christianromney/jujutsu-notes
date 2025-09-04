@@ -284,6 +284,14 @@ We can make further edits, and they will all be part of the working copy. Once
 we're ready to send them upstream, we can move the bookmark to our new commit
 and push the bookmark.
 
+#+begin_src fish
+jj bookmark move main --to @
+jj git push
+#+end_src
+
+Once again, a new commit is created after the push to hold any new changes. If
+we tried to squash the commit into the parent, the operation would fail since
+shared history is protected by making it immutable.
 *** Resources
 - [[https://jj-vcs.github.io/jj/latest/][jj documentation]]
 - [[https://steveklabnik.github.io/jujutsu-tutorial/][Steve Klabnik's Tutorial]]
