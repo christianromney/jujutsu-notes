@@ -386,3 +386,5 @@ the ~rebase~ documentation (~jj rebase --help~).
 - [[https://steveklabnik.github.io/jujutsu-tutorial/][Steve Klabnik's Tutorial]]
 - [[https://jj-for-everyone.github.io/introduction.html][jujutsu for Everyone]]
 - [[https://github.com/jj-vcs/jj][jujutsu Github]]
+- [[https://kubamartin.com/posts/introduction-to-the-jujutsu-vcs/][JJ Intro and Patterns]]
+
