@@ -381,10 +381,17 @@ The rebase command is very powerful. It can act on multiple lineages at once,
 whether on a single commit or all of its descendants. Take time to read through
 the ~rebase~ documentation (~jj rebase --help~).
 
+
+
+
+*** The Magic of Absorption
+jujutsu's ~absorb~ command simplifies the process of pushing integration branch
+changes upstream.
+
 *** Resources
 - [[https://jj-vcs.github.io/jj/latest/][jj documentation]]
 - [[https://steveklabnik.github.io/jujutsu-tutorial/][Steve Klabnik's Tutorial]]
 - [[https://jj-for-everyone.github.io/introduction.html][jujutsu for Everyone]]
 - [[https://github.com/jj-vcs/jj][jujutsu Github]]
 - [[https://kubamartin.com/posts/introduction-to-the-jujutsu-vcs/][JJ Intro and Patterns]]
-
+- [[https://v5.chriskrycho.com/journal/jujutsu-megamerges-and-jj-absorb/][JJ Merges and Absorb]]
