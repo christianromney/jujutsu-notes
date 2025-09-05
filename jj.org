@@ -6,9 +6,12 @@ Install jujutsu with Homebrew.
 brew install jujutsu
 #+end_src
 
-Configure basic user information with the ~config~ command. The ~--user~ flag sets
-the configuration value for the logged in user. The ~--repo~ can be used to
-override that value on a per-repository basis.
+Configure basic user information with the ~config~ command. The config command has
+two sub-commands, ~set~ and ~get~, that do what the name implies. Configuration
+values can be set for a specific repository with the ~--repo~ switch, or for the
+current user with the ~--user~ switch.
+
+Let's set the user name and email globally for the current user.
 
 #+begin_src fish
 jj config set --user user.name "Christian Romney"
@@ -16,20 +19,15 @@ jj config set --user user.email "christian.romney@nubank.com.br"
 #+end_src
 
 You can also specify a command to run when ~jj~ is invoked with no arguments. By
-default, this is the ~log~ command, but you can change this configuration.
+default, this is the ~log~ command, but you can change this configuration if you
+prefer something else.
 
 #+begin_src fish
-jj config set --user ui.default-command status
+jj config set --repo ui.default-command status
 #+end_src
 
-Now typing only ~jj~ will show the equivalent of ~jj status~.
-** Configuration
-Use the jj ~config~ command to set configuration options in jujutsu. We have
-already used this command to configure the name and email of the current user.
-
-The config command has two sub-commands, ~set~ and ~get~, that do what the name
-implies. Configuration values can be set for a specific repository with the
-~--repo~ switch, or for the current user with the ~--user~ switch.
+Now typing only ~jj~ will show the equivalent of ~jj status~ instead when working in
+this repository.
 
 Through configuration you can control how jj displays information as well as its
 behavior during certain operations. Besides simple values, jj also has a
@@ -38,10 +36,29 @@ output. Consult the [[https://jj-vcs.github.io/jj/latest/config/][configuration 
 
 ** Starting New Work
 *** Initialization
-Before we can use jujutsu to version work, we must initialize a repository.
+Before we can use jujutsu to version work, we must initialize a repository. If
+you do not plan to use Git commands locally and are working with a brand new jj
+repository, you can use the following command:
 
 #+begin_src fish
 jj git init
+#+end_src
+
+This will create a ~.jj~ directory which holds the respository and configuration
+files. There will be no ~.git~ directory in the repository root. If you plan to
+invoke ~git~ commands or are working with an existing repo, then you should use
+this command instead:
+
+#+begin_src fish
+jj git init --colocate
+#+end_src
+
+This will keep both a ~.git~ and ~.jj~ directory as siblings in the root. Let's
+ensure Git ignores jujutsu folders, since jj knows about git but not the other
+way around.
+
+#+begin_src fish
+echo ".jj" >> $HOME/.gitignore_global
 #+end_src
 
 Jujutsu was designed to support different backends to perform lower level
@@ -60,7 +77,7 @@ is 00000000. Each jujutsu commit is associated with a commit hash based on its
 content (like Git) as well as a change id which is a stable name for a logical
 change. This change id immediately precedes the commit hash.
 
-**** Changes, Commits, and thr Working Copy
+**** Changes, Commits, and the Working Copy
 One way to think of the difference between a Change and a commit is that a
 Change represents a desired unit of alteration. It's your complete set of
 intended modifications. Commits, on the other hand, are the low-level mechanical
@@ -362,6 +379,21 @@ The rebase command is very powerful. It can act on multiple lineages at once,
 whether on a single commit or all of its descendants. Take time to read through
 the ~rebase~ documentation (~jj rebase --help~).
 
+** Branching and Merging
+All ~jj~ workflows use anonymous branches by default (detached HEADs in Git
+parlance). Since every change is in essence a branch, there's no need to name
+branches to accomplish every day tasks. Similarly, merging is just creating a
+~new~ change with two (or more) parents.
+
+#+begin_src fish
+jj new p1 p2 -m "The new change that merges p1 and p2"
+#+end_src
+
+The new command has a lot of power: it can insert arbitrary changes, including
+merges, at any point in the history.
+
+*** Merging
+Let's branch off our parent commit to create a parallel development line
 that is a sibling to our working copy.
 
 #+begin_src fish
@@ -458,13 +490,149 @@ Now we can create a new change with both the link and absorb lines merged:
 jj new tq ny -m "Merge intro and patterns into absorb"
 #+end_src
 
+** Conflict Resolution
+Converging the changes from the 'merge' and 'absorb' branches produced a conflict.
 
+#+begin_example
+@    yzvzskrr christian.a.romney@gmail.com 2025-09-04 20:48:55 2b0ef271 conflict
+├─╮  (empty) Converge all changes
+│ ○    uqovzsov christian.a.romney@gmail.com 2025-09-04 20:37:21 a3b9a71c
+│ ├─╮  Merge intro and patterns into absorb
+│ │ ○  nyzqxvsv christian.a.romney@gmail.com 2025-09-04 20:09:04 fb5a3f7f
+│ │ │  Describe the absorb command
+○ │ │  wulwmvrz christian.a.romney@gmail.com 2025-09-04 20:36:11 f0e49f94
+├─╮ │  Complete merge description
+│ ◆ │  tqppyslv christian.romney@nubank.com.br 2025-09-04 19:29:22 main 063bb9b1
+│ ├─╯  Add link to JJ Intro and Patterns
+○ │  runwmuks christian.a.romney@gmail.com 2025-09-04 19:33:26 6d3e0457
+├─╯  Describe merging remote repository commits
+◆  wurtosxt christian.a.romney@gmail.com 2025-09-04 14:50:43 54f36fc9
+│  Describe rebasing local work on remote changes
+~
+#+end_example
 
+The interesting thing to note is that the ~new~ operation succeeded. Conflicts
+don't abort operations or leave the repository in an odd state. Conflicts are
+recorded as first-class information. They don't prevent additional changes from
+being created, either.
 
-*** The Magic of Absorption
+However, whether or not you choose to resolve conflicts first or continue
+editing, *always create a new change* on top of a conflict. Once you've resolved
+the conflict, squash it down into the conflicting commit.
+
+#+begin_src fish
+jj new -n "Describe conflicts"
+#+end_src
+
+We can add more content and defer the resolution until we want to deal with it.
+In this case, I've added new content and resolved the conflict in the working
+copy.
+
+#+begin_example
+@  qtxzvnzl christian.a.romney@gmail.com 2025-09-05 08:29:07 362320ae
+│  Describe conflicts
+×    yzvzskrr christian.a.romney@gmail.com 2025-09-04 20:48:55 2b0ef271 conflict
+├─╮  (empty) Converge all changes
+│ ○    uqovzsov christian.a.romney@gmail.com 2025-09-04 20:37:21 a3b9a71c
+│ ├─╮  Merge intro and patterns into absorb
+│ │ ○  nyzqxvsv christian.a.romney@gmail.com 2025-09-04 20:09:04 fb5a3f7f
+│ │ │  Describe the absorb command
+○ │ │  wulwmvrz christian.a.romney@gmail.com 2025-09-04 20:36:11 f0e49f94
+├─╮ │  Complete merge description
+│ ◆ │  tqppyslv christian.romney@nubank.com.br 2025-09-04 19:29:22 main 063bb9b1
+│ ├─╯  Add link to JJ Intro and Patterns
+○ │  runwmuks christian.a.romney@gmail.com 2025-09-04 19:33:26 6d3e0457
+├─╯  Describe merging remote repository commits
+◆  wurtosxt christian.a.romney@gmail.com 2025-09-04 14:50:43 54f36fc9
+│  Describe rebasing local work on remote changes
+~
+#+end_example
+
+Let's interactively split the current change into two different changes. When
+the diff tool loads, any changes we leave on the *right* will be spun out into a
+subsequent commit. This makes intuitive sense in the West, where we read from
+left to right. The stuff on the left will stay behind in the existing commit.
+Invoke the split command like so:
+
+#+begin_src fish
+jj split --tool meld
+#+end_src
+
+Once you've chose what to split, jj will launch your ~$EDITOR~ twice to amend
+the commit messages in historical order. Now your history will look something like:
+
+#+begin_src fish
+@  pswmtnwq christian.a.romney@gmail.com 2025-09-05 08:43:05 2d4803d7
+│  Reorder content and fix headings
+○  qtxzvnzl christian.a.romney@gmail.com 2025-09-05 08:37:41 40afcb43
+│  Describe merge conflicts
+×    yzvzskrr christian.a.romney@gmail.com 2025-09-04 20:48:55 2b0ef271 conflict
+├─╮  (empty) Converge all changes
+│ ○    uqovzsov christian.a.romney@gmail.com 2025-09-04 20:37:21 a3b9a71c
+│ ├─╮  Merge intro and patterns into absorb
+│ │ ○  nyzqxvsv christian.a.romney@gmail.com 2025-09-04 20:09:04 fb5a3f7f
+│ │ │  Describe the absorb command
+○ │ │  wulwmvrz christian.a.romney@gmail.com 2025-09-04 20:36:11 f0e49f94
+├─╮ │  Complete merge description
+│ ◆ │  tqppyslv christian.romney@nubank.com.br 2025-09-04 19:29:22 main 063bb9b1
+│ ├─╯  Add link to JJ Intro and Patterns
+○ │  runwmuks christian.a.romney@gmail.com 2025-09-04 19:33:26 6d3e0457
+├─╯  Describe merging remote repository commits
+◆  wurtosxt christian.a.romney@gmail.com 2025-09-04 14:50:43 54f36fc9
+│  Describe rebasing local work on remote changes
+~
+#+end_src
+
+We can inspect the ~qtxzvnzl~ commit to ensure it actually fixes the merge
+conflict before squashing it down into the conflict commit to resolve it.
+
+#+begin_example
+Commit ID: 40afcb43bd7007ea52654f1818ba7ac8b72018e2
+Change ID: qtxzvnzlqvxlwnwvkllpmkqyryylomso
+Author   : Christian Romney <christian.a.romney@gmail.com> (2025-09-04 20:51:56)
+Committer: Christian Romney <christian.a.romney@gmail.com> (2025-09-05 08:37:41)
+
+    Describe merge conflicts
+
+Resolved conflict in jj.org:
+    ...
+  23   23: #+end_src
+#+end_example
+
+Now let's squash that commit and resolve the conflict:
+
+#+begin_src fish
+jj squash -f qt -t yz --use-destination-message
+#+end_src
+
+The ~-f~ and ~-t~ switches stand for *from* and *into* respectively. The history now
+shows the resolved conflict.
+
+#+begin_example
+@  pswmtnwq christian.a.romney@gmail.com 2025-09-05 08:49:48 0a2ad2b6
+│  Reorder content and fix headings
+○    yzvzskrr christian.a.romney@gmail.com 2025-09-05 08:47:58 7fcda544
+├─╮  Converge all changes
+│ ○    uqovzsov christian.a.romney@gmail.com 2025-09-04 20:37:21 a3b9a71c
+│ ├─╮  Merge intro and patterns into absorb
+│ │ ○  nyzqxvsv christian.a.romney@gmail.com 2025-09-04 20:09:04 fb5a3f7f
+│ │ │  Describe the absorb command
+○ │ │  wulwmvrz christian.a.romney@gmail.com 2025-09-04 20:36:11 f0e49f94
+├─╮ │  Complete merge description
+│ ◆ │  tqppyslv christian.romney@nubank.com.br 2025-09-04 19:29:22 main 063bb9b1
+│ ├─╯  Add link to JJ Intro and Patterns
+○ │  runwmuks christian.a.romney@gmail.com 2025-09-04 19:33:26 6d3e0457
+├─╯  Describe merging remote repository commits
+◆  wurtosxt christian.a.romney@gmail.com 2025-09-04 14:50:43 54f36fc9
+│  Describe rebasing local work on remote changes
+~
+#+end_example
+
+** The Magic of Absorption
 jujutsu's ~absorb~ command simplifies the process of pushing integration branch
-changes upstream.
+changes upstream into the appropriate parent if those changes are unambiguous.
 
+** Resources
 - [[https://jj-vcs.github.io/jj/latest/][jj documentation]]
 - [[https://steveklabnik.github.io/jujutsu-tutorial/][Steve Klabnik's Tutorial]]
 - [[https://jj-for-everyone.github.io/introduction.html][jujutsu for Everyone]]
