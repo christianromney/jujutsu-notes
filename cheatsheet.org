@@ -1,0 +1,176 @@
+#+TITLE: Jujutsu (jj) Command Cheatsheet
+#+AUTHOR: Quick Reference
+#+DATE: 2025-11-03
+
+* Setup & Configuration
+
+#+begin_src bash
+brew install jujutsu                        # Install on macOS
+jj config set --user user.name "Your Name"
+jj config set --user user.email "you@example.com"
+jj git init --colocate                      # Initialize in existing Git repo
+jj git clone <url>                          # Clone a repository
+#+end_src
+
+* Viewing State
+
+#+begin_src bash
+jj status                    # Show working copy changes
+jj diff                      # Show changes in current commit
+jj log                       # Show commit graph with change IDs
+jj log -r <revset>          # Show specific commits
+jj evolog                    # Show how a change evolved over time
+#+end_src
+
+* Creating & Navigating Changes
+
+#+begin_src bash
+jj new                       # Finish current commit, start new one
+jj new -m "message"         # Create new commit with message
+jj commit -m "message"      # Describe current + new (like git commit)
+jj describe -m "message"    # Set/update commit message
+
+jj edit <change-id>         # Switch to editing a different commit
+jj prev                      # Move to parent commit
+jj next                      # Move to child commit
+jj prev --edit              # Edit parent directly
+#+end_src
+
+* History Editing
+
+#+begin_src bash
+jj squash                    # Squash @ into parent
+jj squash --into <dest>     # Squash @ into specific commit
+jj squash -r <src> --into <dest>  # Squash one commit into another
+
+jj split                     # Split current commit into two
+jj rebase -d <dest>         # Rebase onto destination
+jj abandon                   # Discard current change
+jj fix                       # Apply formatters/linters
+#+end_src
+
+* Working with Files
+
+#+begin_src bash
+jj file list                 # List tracked files
+jj file show <path>         # Show file contents
+jj file show <path> -r <rev> # Show file at specific revision
+jj file track <path>        # Explicitly track file
+jj file untrack <path>      # Stop tracking file
+#+end_src
+
+* Bookmarks (Branches)
+
+#+begin_src bash
+jj bookmark list             # List all bookmarks
+jj bookmark set <name> -r @  # Create or update bookmark (most common)
+jj bookmark create <name>    # Create new bookmark (fails if exists)
+jj bookmark move <name> -r <rev>  # Move bookmark
+jj bookmark delete <name>    # Delete bookmark
+jj bookmark track <name>@<remote>  # Track remote bookmark
+#+end_src
+
+* Syncing with Remotes
+
+#+begin_src bash
+jj git fetch                 # Fetch from remote
+jj git push --bookmark <name>  # Push bookmark
+jj git push --bookmark <name> --allow-new  # Push new bookmark (first time)
+jj git push --change @       # Push with auto-generated bookmark
+#+end_src
+
+* Conflict Resolution
+
+#+begin_src bash
+jj status                    # Shows conflicted files
+# Edit files manually to resolve, or:
+jj resolve                   # Resolve all conflicts interactively
+jj resolve <path>           # Resolve specific file
+jj resolve --list           # List conflicted files
+jj resolve --tool=:ours     # Use our side
+jj resolve --tool=:theirs   # Use their side
+#+end_src
+
+* Comparing Changes
+
+#+begin_src bash
+jj diff                      # Show changes in @
+jj diff -r <rev>            # Show changes in specific commit
+jj interdiff --from <a> --to <b>  # Compare two versions
+jj evolog -p                # Show evolution with diffs
+#+end_src
+
+* Safety & Undo
+
+#+begin_src bash
+jj undo                      # Undo last operation
+jj redo                      # Redo after undo
+jj op log                    # Show operation history
+jj op restore <id>          # Restore to specific operation
+#+end_src
+
+* Advanced Commands
+
+#+begin_src bash
+jj absorb                    # Auto-distribute changes to appropriate commits
+jj diffedit -r <rev>        # Interactively edit commit's changes
+jj parallelize <revset>     # Convert linear stack to parallel
+jj duplicate <change-id>    # Copy commit
+jj bisect run '<command>'   # Find bug-introducing commit
+jj metaedit                  # Modify commit metadata
+#+end_src
+
+* Common Revsets
+
+#+begin_src bash
+@                            # Current working copy
+@-                           # Parent of working copy
+main                         # Bookmark/branch named "main"
+main@origin                  # Remote bookmark
+main..@                      # Commits between main and @
+trunk()                      # Main development branches
+tags()                       # All tags
+bookmarks()                  # All local bookmarks
+#+end_src
+
+* Key Concepts
+
+- *Working copy is a commit* (~@~) - no staging area
+- *Change ID* - stable identifier across amendments
+- *Commit ID* - identifies specific snapshot (changes on amend)
+- *Bookmarks* - like Git branches but auto-move during rebasing
+- *Immutable commits* - trunk(), tags(), and pushed commits are protected
+- *Co-located repos* - both .jj and .git directories, stay synced
+
+* Quick Workflow Examples
+
+** Starting new work:
+#+begin_src bash
+jj new main                  # Start from main
+# Make changes...
+jj commit -m "Add feature"  # Finish and describe
+#+end_src
+
+** Fixing earlier commit:
+#+begin_src bash
+jj edit <change-id>         # Switch to that commit
+# Make fixes...
+jj new                       # Descendants auto-rebase!
+#+end_src
+
+** Stacked PRs:
+#+begin_src bash
+jj new main
+# Work on part 1...
+jj new                       # Start part 2
+# Work on part 2...
+jj bookmark set part1 -r @-
+jj bookmark set part2 -r @
+jj git push --bookmark part1 --allow-new
+jj git push --bookmark part2 --allow-new
+#+end_src
+
+* Resources
+
+- ~jj help [command]~ - Built-in help
+- https://jj-vcs.github.io/jj/latest/ - Official documentation

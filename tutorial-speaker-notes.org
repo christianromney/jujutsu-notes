@@ -1,0 +1,27 @@
+#+TITLE: Jujutsu VCS Tutorial - Speaker Notes
+#+AUTHOR: Tutorial Outline
+#+DATE: 2025-11-03
+
+* Timing Breakdown
+
+- Setup & signing: 3-4 min
+- Core concepts & basic operations: 5-6 min
+- History editing: 4-5 min
+- Working with bookmarks: 3-4 min
+- Syncing with remotes: 2 min
+- Stacked changes / PR workflow: 3-4 min
+- Understanding revsets: 2-3 min
+- Immutable commits & safe history: 3-4 min
+- Conflicts: 2-3 min
+- *Advanced power features (bonus): 3-5 min*
+- Wrap-up: 1-2 min
+
+*Total: 28-36 minutes* (31-41 minutes with bonus section)
+
+* Preparation Recommendations
+
+1. Have a demo repo ready with some commits
+2. Pre-configure signing keys on the demo machine
+3. Consider having a printed "cheat sheet" handout with the command reference table
+4. Test the full workflow beforehand to keep timing tight
+5. Have ~jj log~ output visible throughout to show the change graph evolving

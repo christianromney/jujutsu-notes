@@ -1,0 +1,746 @@
+#+TITLE: Jujutsu VCS Tutorial
+#+AUTHOR: Christian Romney
+#+DATE: 2025-11-03
+
+* Tutorial Overview
+
+Jujutsu (jj) is a modern version control system that layers powerful features on top of Git. Think of it as Git with a better command-line interface and workflow - you keep your existing Git repositories and remotes, but gain features like automatic rebasing, first-class conflicts, and an operation log that makes mistakes reversible.
+
+This tutorial teaches you jj in the context of GitHub-based development. You'll learn how jj's design makes common Git workflows simpler and safer, particularly around history editing and managing stacks of changes for pull requests.
+
+*Target Audience:* Developers with intermediate to advanced Git experience, working with GitHub
+
+*What You'll Learn:*
+- Core jj concepts and how they differ from Git
+- Daily workflow: creating, editing, and navigating changes
+- Managing bookmarks (branches) and syncing with remotes
+- Stacking changes for better pull request workflows
+- Safe history editing and conflict resolution
+
+* 1. Setup & Installation
+
+Let's get jj installed and configured. The setup process will feel familiar if you've used Git before.
+
+** A. Installation
+
+On macOS, install jj via Homebrew:
+
+#+begin_src bash
+brew install jujutsu
+#+end_src
+
+** B. Essential Configuration
+
+Configure your identity for commits. Note that jj uses ~--user~ instead of Git's ~--global~:
+
+#+begin_src bash
+jj config set --user user.name "Your Name"
+jj config set --user user.email "your.email@example.com"
+#+end_src
+
+** C. Commit Signing Setup
+
+Many organizations require signed commits for security. Jujutsu supports both GPG and SSH signing - choose whichever you already have configured.
+
+*** For GPG:
+
+#+begin_src bash
+# List available GPG keys and fingerprints
+gpg --list-secret-keys --keyid-format=long
+
+# Configure jj to use GPG
+jj config set --user signing.backend "gpg"
+jj config set --user signing.behavior "own"
+jj config set --user signing.key "4ED556E9729E000F"  # Replace this sample with your key fingerprint
+#+end_src
+
+*** For SSH (simpler option):
+
+#+begin_src bash
+# Find your SSH public key
+ls ~/.ssh/*.pub
+cat ~/.ssh/id_ed25519.pub  # Or your key name
+
+# Configure jj to use SSH
+jj config set --user signing.backend "ssh"
+jj config set --user signing.behavior "own"
+jj config set --user signing.key "~/.ssh/id_ed25519.pub"
+#+end_src
+
+Both of these examples use the "own" signing behavior which signs commits you create or edit.
+
+** D. Initializing a Co-located Repository
+
+Jujutsu works alongside Git in "co-located" repositories. This means you can use both ~jj~ and ~git~ commands on the same repo, and they stay synchronized automatically.
+
+#+begin_src bash
+jj git init --colocate  # In existing Git repo, or use jj git clone
+#+end_src
+
+After running this command, you'll have both ~.jj~ and ~.git~ directories. Git will show "detached HEAD" - this is normal and expected with jj. The two systems synchronize on every jj command, so you can use Git tools when needed while primarily working with jj.
+
+* 2. Core Concepts & Daily Workflow
+
+Now that jj is installed, let's understand its core concepts. These differ from Git in ways that make common operations simpler and safer.
+
+** A. Understanding the Working Copy
+
+The first mind-shift: in jj, your working copy *is* a commit. There's no staging area - when you edit files, those changes automatically become part of the current commit (represented by ~@~).
+
+#+begin_src bash
+# Make changes to files...
+jj status      # Working copy automatically amends!
+jj diff        # See what changed in @
+#+end_src
+
+Every time you run a jj command, it automatically snapshots your working directory and amends the ~@~ commit. This eliminates the need for ~git add~ - your changes are always part of a commit.
+
+** B. Understanding Changes vs Commits
+
+This is a critical distinction: jj tracks both *change IDs* and *commit IDs*.
+
+- *Change ID*: Identifies a logical piece of work. Stays the same when you edit/amend the commit.
+- *Commit ID*: Identifies a specific snapshot. Changes every time you modify the commit.
+
+*Why both?* Change IDs let you refer to "that feature I'm working on" across rewrites. Commit IDs identify exact historical snapshots. This means you can use change IDs in your daily workflow without worrying about them changing when you amend commits.
+
+Changes eliminate the need for branches in the way that Git imagines them.
+
+#+begin_src bash
+jj log                       # Shows both IDs for each commit
+# Example output:
+# @  youzwxvz christian.a.romney@gmail.com 2025-11-03 22:12:08 e35b5e0f
+# │  Create jujutsu VCS tutorial outline
+# ◆  pswmtnwq christian.a.romney@gmail.com 2025-09-05 08:04:28 main 7cc5e620
+# │  Reorder content and fix headings
+#
+# First part (youzwxvz) = Change ID (stays stable when you amend)
+# Last part (e35b5e0f) = Commit ID (changes every time you modify)
+#+end_src
+
+** C. Basic Operations & Workflow
+
+The key concept: every jj command auto-amends the working copy commit. This means you're always building on your current change until you explicitly create a new one.
+
+#+begin_src bash
+# Viewing state
+jj status                    # See what's changed in working copy
+jj diff                      # Show changes in detail
+jj log                       # See commit graph with both change and commit IDs
+
+# Making changes
+# ... edit files ...
+# Changes automatically amend @ on next jj command
+
+# Finishing a change and starting new work
+jj new                       # "Finish" current commit, create new empty one on top
+jj new -m "message"          # Same, but set message for new commit
+jj describe -m "message"     # Set/update commit message for current change
+jj commit -m "message"       # Shortcut: describe + new (set message and move forward)
+
+# Navigating between changes
+jj edit <change-id>          # Switch working copy to a different change
+jj prev                      # Move to parent commit (creates new @ on parent)
+jj next                      # Move to child commit (creates new @ on child)
+jj prev --edit               # Edit parent directly (like jj edit @-)
+
+# Viewing history
+jj evolog                    # Evolution log - see how a change evolved over time
+jj interdiff --from @ --to @-  # Compare changes between two commits
+
+# Modifying commits
+jj metaedit                  # Modify metadata (author, timestamps, change-id)
+
+# Safety net
+jj undo                      # Undo last operation
+jj redo                      # Redo operation (after undo)
+#+end_src
+
+*Think of ~jj new~ as:* "I'm done with this change, start a new one"
+
+** D. When to Use: ~jj new~ vs ~jj commit~ vs ~jj describe~
+
+With multiple commands that seem similar, it helps to know when to use each:
+
+*~jj new~*: Start a new empty commit on top
+- Use when: You want to start fresh work without setting a message yet
+- Result: New empty commit becomes @
+
+*~jj describe~*: Set/update the commit message for @
+- Use when: You want to add/change the message but keep working on @
+- Result: @ gets a message, stays as working copy
+
+*~jj commit -m "message"~*: Shortcut for ~jj describe + jj new~
+- Use when: You're done AND have a message ready
+- Result: @ gets the message and new empty commit created on top
+- *Most similar to ~git commit~*
+
+*~jj commit <files>~*: Like ~jj split~ but simpler - move specific files to a new commit
+- Use when: You want to commit only certain files
+- Result: Selected files go to @, rest stays in new child commit
+
+*~jj prev~ / ~jj next~*: Navigate linearly through a stack
+- Use when: Working through a stack of commits sequentially
+- Result: Creates new @ on parent/child (by default) or edits directly (with ~--edit~)
+- Shortcut for ~jj new <parent>~ or ~jj new <child>~
+
+** E. Working with Files
+
+Jujutsu provides commands for inspecting and managing files, though most file operations happen naturally through editing.
+
+*Listing and viewing:*
+#+begin_src bash
+jj file list                 # List all tracked files in @
+jj file show <path>          # Show contents of file in @
+jj file show <path> -r <rev> # Show file contents in specific revision
+#+end_src
+
+*Tracking files (usually automatic):*
+#+begin_src bash
+jj file track <path>         # Explicitly mark file as tracked
+jj file untrack <path>       # Stop tracking file
+# Note: jj auto-tracks new files by default!
+#+end_src
+
+*When to use ~jj file~ commands:*
+- ~jj file list~: See what files are in a commit (like ~git ls-files~)
+- ~jj file show~: View file contents without checking out
+- ~jj file track/untrack~: Rarely needed - use when you want explicit control over tracking
+
+*~jj interdiff~ - Compare Two Versions:*
+
+One particularly useful command for PR workflows is ~jj interdiff~, which compares what changed between two commits:
+
+#+begin_src bash
+jj interdiff --from <old-version> --to <new-version>
+# Common use: See what changed after addressing PR feedback
+jj interdiff --from @-- --to @   # Compare last two commits
+#+end_src
+
+*When to use:*
+- Reviewing what changed between PR iterations
+- Seeing how a change evolved after feedback
+- Note: For same change across history, use ~jj evolog -p~ instead
+
+** F. Quick Demo
+
+Show making changes, checking status, using ~jj new~, and viewing the log.
+
+* 3. History Editing & Rebasing
+
+One of jj's superpowers is making history editing safe and straightforward. Unlike Git, where history operations can feel risky, jj provides strong guarantees.
+
+** A. How jj Makes This Easy
+
+- All operations logged (~jj op log~)
+- ~jj undo~ reverses last operation
+- Working on your local commits is safe
+
+This means you can confidently rewrite history knowing you can always undo mistakes.
+
+** B. Common Operations
+
+Let's understand when and why you'd use these history editing commands:
+
+- *~squash~*: Combine multiple commits into one. Use when you have "fix typo" or "address review" commits that should be part of the original change.
+
+- *~rebase -d <dest>~*: Move your changes to build on top of a different commit (the "destination"). "Rebasing onto main" means updating your work to start from the latest main branch instead of wherever you originally branched from.
+
+- *~abandon~*: Discard a change you no longer need. Unlike delete, this preserves the descendants by rebasing them onto the abandoned commit's parent.
+
+*Commands:*
+
+#+begin_src bash
+jj describe             # Change commit message
+jj squash               # Squash @ into parent (combine commits)
+jj edit <change-id>     # Resume editing an old commit
+jj rebase -d main       # Rebase onto main (move changes to build on main)
+jj abandon              # Discard a change (preserves descendants)
+jj fix                  # Run formatters/linters on commits automatically
+#+end_src
+
+*~jj fix~ - Automatic Code Formatting:*
+
+The ~jj fix~ command applies configured formatters (prettier, black, clang-format, etc.) to commits and updates descendants automatically:
+
+#+begin_src bash
+jj fix                  # Fix all mutable commits
+jj fix -s @             # Fix only current commit
+jj fix -s 'main..@'     # Fix all commits in current stack
+#+end_src
+
+Configure tools in ~.jj/config.toml~ or global config.
+
+** C. Demo Examples
+
+*Fixing a typo in an earlier commit:*
+
+Here's where jj really shines - you can edit any commit in your history:
+
+#+begin_src bash
+jj edit <change-id>     # Switch to that commit
+# Fix the typo...
+# Descendants automatically rebase on your changes!
+jj new                  # Move forward to continue working
+#+end_src
+
+*When to use squash - combining fixup commits:*
+
+If you've accumulated small fixup commits, squash combines them into the original change:
+
+#+begin_src bash
+# Scenario: You're at @ and realize you need to fix something in @-
+# Make the fixes in your current working copy...
+jj squash --into @-     # Squash current changes into parent
+
+# Alternative: Already created separate "fix typo" commits? Squash them:
+jj squash -r <fixup-change-id> --into <target-change-id>
+#+end_src
+
+*Note:* When you edit an earlier commit, jj automatically rebases all descendants. No manual rebasing needed!
+
+* 4. Working with Bookmarks
+
+Now let's talk about how to organize and name your work. Jujutsu uses "bookmarks" which are similar to Git branches but with important differences.
+
+** A. What Are Bookmarks?
+
+Bookmarks are jj's version of Git branches - named pointers to commits.
+
+*Think of bookmarks as:* Labels you attach to commits to track your work and push to GitHub as branches.
+
+** B. How Bookmarks Differ from Git Branches
+
+Understanding these differences helps explain why bookmarks feel more natural in daily use:
+
+*Key differences:*
+
+- *Automatic movement*: Bookmarks automatically follow commits when you rebase or rewrite them. Git branches stay fixed unless you explicitly move them.
+
+- *No "active" bookmark*: In Git, you're always "on" a branch. In jj, there's no active bookmark - you work with commits directly via change IDs.
+
+- *Conflict handling*: Bookmarks can become conflicted (shown with ~??~) when updated from multiple sources. You resolve these explicitly.
+
+*Why this matters:* Bookmarks track your intent (which commits belong to which feature) while jj handles the mechanics of keeping them up-to-date.
+
+** C. Creating and Managing Bookmarks
+
+#+begin_src bash
+jj bookmark list                         # Show all bookmarks
+jj bookmark set feature-x -r @           # Create or update bookmark (most common)
+jj bookmark create feature-x -r @        # Create NEW bookmark (fails if exists)
+jj bookmark move feature-x -r <rev>      # Move existing bookmark
+jj bookmark delete old-feature           # Delete local bookmark
+jj bookmark track feature-x@origin       # Start tracking <branch>@<remote> with a bookmark
+#+end_src
+
+** D. Understanding Bookmark Tracking
+
+Tracking is a concept that helps keep your local bookmarks synchronized with remotes.
+
+*What does tracking do?*
+
+When you track a remote bookmark (like ~feature-x@origin~), ~jj git fetch~ will automatically create or update a local bookmark (~feature-x~) to match the remote.
+
+*Without tracking:* You can still see and reference ~feature-x@origin~, but fetch won't automatically create a local ~feature-x~ bookmark.
+
+*When to track:* Track remote bookmarks you're actively working on and want to stay synchronized with.
+
+** E. Which Command to Use?
+
+With multiple bookmark commands available, here's when to use each:
+
+- *~set~*: Use this most of the time - works for both new and existing bookmarks
+- *~create~*: When you want an error if the bookmark already exists (safer but stricter)
+- *~move~*: When you need advanced features like ~--allow-backwards~ or ~--from~ filters
+
+** F. Tags vs Bookmarks
+
+Tags serve a different purpose than bookmarks - they mark immutable points in history.
+
+*Tags* are like bookmarks but immutable - they mark specific points (usually releases):
+
+#+begin_src bash
+jj tag list                  # List all tags
+# Note: Create tags via git (jj syncs them automatically)
+git tag v1.0.0
+jj git fetch                 # Import tags from git
+#+end_src
+
+*Key difference:* Tags don't move when commits are rewritten. Bookmarks follow commits.
+
+* 5. Syncing with Remotes
+
+With bookmarks in place, let's connect your local work to GitHub.
+
+** A. Fetching Updates
+
+Fetching in jj works similarly to Git, pulling down remote changes:
+
+#+begin_src bash
+jj git fetch                 # Pull changes from remote
+jj log                       # See remote bookmarks (e.g., main@origin)
+jj rebase -d main@origin     # Rebase your work onto latest main
+#+end_src
+
+** B. Basic Push (without bookmarks)
+
+For quick prototyping, you can push single changes with auto-generated bookmarks:
+
+#+begin_src bash
+jj git push --change @ --allow-new   # Pushes current change with generated bookmark name
+#+end_src
+
+This is useful for one-off experiments but for real work you'll want to create explicit bookmarks.
+
+* 6. Stacked Changes / PR Workflow
+
+One of jj's most powerful patterns is "stacking" - breaking large features into small, dependent pull requests. Let's understand why and how.
+
+** A. Why Stack Changes?
+
+*The problem with large PRs:*
+- Hard to review (reviewers lose focus)
+- Risky to merge (many changes at once)
+- Slow feedback cycle (must finish everything before getting feedback)
+
+*Stacking solves this by:*
+- Breaking large features into small, reviewable chunks
+- Getting feedback on early parts while working on later parts
+- Making each PR focused and easy to understand
+
+*Example:* Instead of one huge "Add user authentication" PR, stack:
+1. PR 1: Add database schema for users
+2. PR 2: Add authentication API endpoints (builds on PR 1)
+3. PR 3: Add login UI (builds on PR 2)
+
+Each PR can be reviewed and merged independently!
+
+*What if your change is already too big?* Use ~jj split~ to break it apart:
+
+#+begin_src bash
+jj split                # Interactively choose which changes go into first commit
+# jj opens an editor showing all changes
+# Select which hunks belong in the first commit
+# Everything else stays in the second commit
+#+end_src
+
+After splitting, you have two commits where you had one - perfect for creating separate PRs!
+
+** B. Building Dependent PRs
+
+Here's the workflow for creating a stack:
+
+#+begin_src bash
+jj new main                                      # Start from main
+# Make changes...
+jj new                                            # Start second change
+# Make more changes...
+jj bookmark set feature-part1 -r @-              # Bookmark first change
+jj bookmark set feature-part2 -r @               # Bookmark second change
+jj git push --bookmark feature-part1 --allow-new # First time push requires --allow-new
+jj git push --bookmark feature-part2 --allow-new
+#+end_src
+
+Note the ~--allow-new~ flag - this is required the first time you push a new bookmark to protect against typos.
+
+** C. Addressing PR Feedback
+
+When you get feedback on a PR in your stack, jj makes it easy to fix:
+
+#+begin_src bash
+jj edit <change-id>     # Go back to specific change in stack
+# Make fixes...
+jj new                  # Move forward
+jj git push --bookmark feature-part1  # Update existing bookmark (no --allow-new needed)
+#+end_src
+
+All descendant changes automatically rebase on your fixes!
+
+* 7. Understanding Revsets
+
+Throughout this tutorial we've used expressions like ~@~, ~main~, and ~main@origin~. These are "revsets" - jj's query language for selecting commits.
+
+** A. What Are Revsets?
+
+Revsets are jj's query language for selecting commits. Think of them as "commit selectors."
+
+*Full reference:* https://jj-vcs.github.io/jj/latest/revsets/
+
+You've already been using simple revsets, but they can be much more powerful.
+
+** B. Basic Revset Syntax
+
+*Symbols:*
+- ~@~ - your working copy commit
+- ~@-~ - parent of working copy
+- ~main~ - a bookmark/branch
+- ~main@origin~ - bookmark on remote
+
+*Common Functions:*
+- ~trunk()~ - main development branches (main, master, trunk)
+- ~tags()~ - tagged releases
+- ~bookmarks()~ - all local bookmarks
+- ~remote_bookmarks()~ - bookmarks on remotes
+
+*Examples:*
+#+begin_src bash
+jj log -r @                    # Show working copy
+jj log -r @-                   # Show parent
+jj log -r main..@              # Commits between main and working copy
+jj log -r 'author(alice)'      # Commits by alice
+#+end_src
+
+* 8. Immutable Commits & Safe History
+
+Now that you understand how to work with history, let's talk about the safety rails that prevent you from breaking shared work.
+
+** A. Why This Matters
+
+In Git, it's easy to accidentally rewrite commits that others have based work on, breaking their repositories. Force pushing can overwrite work. These accidents cause frustration and lost time.
+
+Jujutsu prevents these problems through immutable commits - certain commits are protected from rewriting.
+
+** B. What Are Immutable Commits?
+
+Jujutsu protects certain commits from being rewritten:
+- ~trunk()~ - main/master branches
+- ~tags()~ - tagged releases
+- ~untracked_remote_bookmarks()~ - commits pushed to remotes
+
+*Configuration example (optional to show):*
+#+begin_src bash
+jj config list | grep immutable
+#+end_src
+
+These protections mean:
+- *No rewriting shared history* - can't accidentally rebase commits others have
+- *No force push needed* - jj checks remote state before pushing (like ~--force-with-lease~)
+- *Safe by default* - protects your team from broken histories
+
+** C. When You Need to Update a Pushed Commit
+
+If you need to update a commit you've already pushed, jj ensures you do it safely:
+
+#+begin_src bash
+jj git push --bookmark my-feature  # Fails if remote diverged
+# Must fetch first if remote changed:
+jj git fetch
+jj rebase -d main@origin          # Resolve conflicts
+jj git push --bookmark my-feature  # Now succeeds
+#+end_src
+
+*Best practice:* Don't rewrite commits others have based work on!
+
+* 9. Conflict Resolution
+
+Let's talk about what happens when your changes conflict with others' changes - an inevitable part of collaborative development.
+
+** A. How jj Handles Conflicts Differently
+
+Jujutsu takes a unique approach to conflicts that gives you more flexibility:
+
+*Key differences from Git:*
+
+- *Conflicts are first-class objects*: You can commit with unresolved conflicts and continue working
+- *No special commands needed*: No ~git rebase --continue~ or ~git merge --continue~ - just edit the conflict and the change is automatically amended
+- *Operations don't fail*: ~jj rebase~ succeeds even with conflicts; descendants automatically rebase too
+
+*Why this matters:* You can keep your work rebased on main without blocking on conflict resolution. Resolve conflicts when you're ready.
+
+** B. Three Ways to Resolve Conflicts
+
+*Method 1: Manual editing (simple conflicts)*
+#+begin_src bash
+jj rebase -d main        # May create conflicts - operation still succeeds!
+jj status                # Shows conflicted files with conflict markers
+# Edit files to resolve (markers: <<<<<<< %%%%%%% +++++++ >>>>>>>)
+jj diff                  # Verify resolution
+# No special command needed - conflict resolved automatically
+#+end_src
+
+*Method 2: Using a merge tool (complex conflicts)*
+#+begin_src bash
+jj resolve --list        # List all conflicted files
+jj resolve path/to/file  # Opens merge tool for specific file
+jj resolve               # Resolve all conflicts interactively, one by one
+# Built-in shortcuts: --tool=:ours (use our side) or --tool=:theirs (use their side)
+#+end_src
+
+*Method 3: View what changed during resolution*
+#+begin_src bash
+jj interdiff --from <before-resolve> --to @  # See what you changed while resolving
+# Useful for reviewing your conflict resolution decisions
+#+end_src
+
+** C. Advanced Features
+
+- *Postpone resolution*: Keep commits rebased while deferring conflict fixes
+- *Better conflict markers*: Shows "diff to apply" rather than just both sides
+- *Descendants auto-rebase*: When you resolve a conflict, descendants update automatically
+
+** D. A Word of Caution
+
+*Don't postpone conflicts indefinitely!*
+
+While jj lets you defer resolution, conflicts have real consequences:
+
+- *Tests may fail*: Conflicted code won't compile or run correctly
+- *Blocks collaboration*: Can't share conflicted commits with teammates
+- *Compounds over time*: More rebases = more potential conflicts to untangle
+- *Breaks local development*: Your working copy may be broken until conflicts are resolved
+
+*Best practice:* Postpone briefly for convenience (finish current thought, switch tasks), but resolve conflicts before:
+- Pushing to remote
+- Asking for code review
+- Switching to work on dependent changes
+
+* 10. Advanced Power Features
+
+If you have extra time, here are some advanced features that showcase jj's power.
+
+** A. ~jj absorb~ - Automatic Fixup Distribution
+
+Intelligently moves changes from your working copy into the appropriate commits in your stack:
+
+#+begin_src bash
+# You've made fixes across multiple files that belong to different commits
+jj absorb                # Automatically distributes changes to where they belong
+# jj analyzes which commit last touched each line and moves changes there
+#+end_src
+
+*When to use:* After making scattered fixes across a stack of commits - let jj figure out where each change belongs.
+
+** B. ~jj diffedit~ - Interactive Change Editing
+
+Edit the changes in a commit directly, like using a visual diff editor:
+
+#+begin_src bash
+jj diffedit -r <change-id>   # Opens diff editor to modify the commit's changes
+# Add/remove hunks, modify lines - more powerful than manual editing
+#+end_src
+
+*When to use:* Surgically edit what a commit changes without touching other commits.
+
+** C. ~jj parallelize~ - Restructure Commit Relationships
+
+Convert a linear stack into parallel siblings for independent testing:
+
+#+begin_src bash
+jj parallelize <revset>      # Makes commits siblings instead of linear ancestors
+# Useful for testing independent features in parallel
+#+end_src
+
+*When to use:* You have multiple independent features in a stack that don't actually depend on each other.
+
+** D. ~jj op log~ and ~jj op restore~ - Time Travel
+
+View and restore any previous state of your repository:
+
+#+begin_src bash
+jj op log                    # See every operation you've performed
+jj op restore <operation-id> # Go back to any previous state
+# More powerful than undo - can restore from any point in history
+#+end_src
+
+*When to use:* Made a complex mistake? Just restore to before you made it!
+
+** E. ~jj duplicate~ - Copy Commits
+
+Create copies of commits with the same content but different change IDs:
+
+#+begin_src bash
+jj duplicate <change-id>           # Duplicate commit onto its current parent
+jj duplicate -d main <change-id>   # Duplicate commit onto a different base (main)
+# Useful for trying different approaches without losing the original
+#+end_src
+
+*When to use:*
+- Experiment with changes without losing the original
+- Apply the same change to multiple branches
+- Create a backup before risky operations
+
+** F. ~jj bisect~ - Find When a Bug Was Introduced
+
+Automatically find which commit introduced a bug using binary search:
+
+#+begin_src bash
+jj bisect run 'cargo test'         # Automatically test each commit
+# jj will binary search through history, running your test command
+# Finds the first commit where the test fails
+#+end_src
+
+*When to use:* When you know something broke but don't know which commit caused it.
+
+* 11. Wrap-up & Resources
+
+** Key Takeaways
+
+- Working copy is a commit; ~jj new~ to start fresh
+- Change IDs stay stable across amendments; commit IDs change
+- Immutable commits prevent rewriting shared history
+- Operation log (~jj op log~) + ~jj undo~ = safety net
+- Colocated repos let you use both jj and git
+- Bookmarks track your work; use ~jj bookmark set~ for most cases
+- Stacking changes creates better PRs
+
+** Resources
+
+- ~jj help [command]~
+- https://jj-vcs.github.io/jj/latest/
+
+* Command Reference Table
+
+| Command | Description | Example |
+|---------|-------------|---------|
+| ~jj git init~ | Initialize colocated jj+git repo | ~jj git init~ |
+| ~jj git clone~ | Clone a Git repository | ~jj git clone https://github.com/user/repo~ |
+| ~jj status~ | Show working copy changes, auto-snapshots working copy | ~jj status~ |
+| ~jj diff~ | Show changes in working copy commit | ~jj diff~ |
+| ~jj log~ | Display commit graph with change IDs | ~jj log~ |
+| ~jj evolog~ | Show evolution history of a change (how it was modified over time) | ~jj evolog~ |
+| ~jj interdiff~ | Compare changes between two commits (useful for PR iterations) | ~jj interdiff --from @-- --to @~ |
+| ~jj new~ | Create new empty commit on top of current, "finishing" current change | ~jj new~ |
+| ~jj new <change-id>~ | Create new commit based on specific revision | ~jj new main~ |
+| ~jj describe~ | Set or change commit message for current or specified commit | ~jj describe -m "feat: add feature"~ |
+| ~jj commit~ | Shortcut: describe + new (most like git commit) | ~jj commit -m "message"~ |
+| ~jj commit <files>~ | Commit only specific files (like split but simpler) | ~jj commit src/*.rs -m "message"~ |
+| ~jj metaedit~ | Modify commit metadata (author, timestamps, change-id) without changing content | ~jj metaedit --author "Name <email>"~ |
+| ~jj edit <change-id>~ | Make specified commit the working copy, allows resuming work on old commits | ~jj edit abc123~ |
+| ~jj prev~ | Move to parent commit in a stack (creates new @ on parent by default) | ~jj prev~ |
+| ~jj next~ | Move to child commit in a stack (creates new @ on child by default) | ~jj next~ |
+| ~jj prev --edit~ | Edit parent commit directly | ~jj prev --edit~ |
+| ~jj squash~ | Move changes from working copy into parent commit | ~jj squash~ |
+| ~jj split~ | Split a commit into two commits interactively | ~jj split~ |
+| ~jj abandon~ | Abandon current change, removing it from history | ~jj abandon~ |
+| ~jj rebase -d <dest>~ | Rebase current change onto destination commit/bookmark | ~jj rebase -d main~ |
+| ~jj fix~ | Apply configured formatters/linters to commits | ~jj fix -s @~ |
+| ~jj file list~ | List tracked files in a revision | ~jj file list~ |
+| ~jj file show~ | Show contents of file in a revision | ~jj file show path/to/file -r @~ |
+| ~jj file track~ | Explicitly track a file | ~jj file track .gitignore~ |
+| ~jj file untrack~ | Stop tracking a file | ~jj file untrack temp.txt~ |
+| ~jj bookmark create~ | Create a new bookmark (fails if bookmark already exists) | ~jj bookmark create feature-x -r @~ |
+| ~jj bookmark set~ | Create or update a bookmark to point to a commit (works for new and existing) | ~jj bookmark set feature-x -r @~ |
+| ~jj bookmark list~ | List all local and remote bookmarks | ~jj bookmark list~ |
+| ~jj bookmark move~ | Move existing bookmarks with advanced options (supports --allow-backwards, --from) | ~jj bookmark move feature-x -r @~ |
+| ~jj bookmark delete~ | Delete a local bookmark | ~jj bookmark delete old-feature~ |
+| ~jj bookmark track~ | Start tracking <branch>@<remote> with a bookmark | ~jj bookmark track feature-x@origin~ |
+| ~jj tag list~ | List all tags | ~jj tag list~ |
+| ~jj git fetch~ | Fetch changes from Git remote | ~jj git fetch~ |
+| ~jj git push~ | Push bookmarks to Git remote (checks remote state, safe by default) | ~jj git push --bookmark feature-x~ |
+| ~jj git push --allow-new~ | Push new bookmark to remote for first time (required for new bookmarks) | ~jj git push --bookmark feature-x --allow-new~ |
+| ~jj git push --change~ | Push single change with auto-generated bookmark | ~jj git push --change @ --allow-new~ |
+| ~jj op log~ | Show operation log (history of jj commands run) | ~jj op log~ |
+| ~jj op restore~ | Restore repository to a previous operation state | ~jj op restore <operation-id>~ |
+| ~jj undo~ | Undo the last operation | ~jj undo~ |
+| ~jj redo~ | Redo an operation (after using undo) | ~jj redo~ |
+| ~jj resolve~ | Resolve conflicts using a merge tool | ~jj resolve~ |
+| ~jj resolve --list~ | List all conflicted files | ~jj resolve --list~ |
+| ~jj absorb~ | Automatically distribute working copy changes to appropriate commits in stack | ~jj absorb~ |
+| ~jj diffedit~ | Interactively edit changes in a commit using a diff editor | ~jj diffedit -r <change-id>~ |
+| ~jj parallelize~ | Convert linear commits to parallel siblings | ~jj parallelize <revset>~ |
+| ~jj duplicate~ | Create a copy of a commit with the same content | ~jj duplicate <change-id>~ |
+| ~jj bisect~ | Find which commit introduced a bug using binary search | ~jj bisect run 'cargo test'~ |
+| ~jj config set --user~ | Set user-level configuration | ~jj config set --user signing.backend "gpg"~ |
+| ~jj sign~ | Manually sign commits | ~jj sign~ |
+
