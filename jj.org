@@ -23,6 +23,19 @@ jj config set --user ui.default-command status
 #+end_src
 
 Now typing only ~jj~ will show the equivalent of ~jj status~.
+** Configuration
+Use the jj ~config~ command to set configuration options in jujutsu. We have
+already used this command to configure the name and email of the current user.
+
+The config command has two sub-commands, ~set~ and ~get~, that do what the name
+implies. Configuration values can be set for a specific repository with the
+~--repo~ switch, or for the current user with the ~--user~ switch.
+
+Through configuration you can control how jj displays information as well as its
+behavior during certain operations. Besides simple values, jj also has a
+[[https://jj-vcs.github.io/jj/latest/templates/][templating language]] which can be used to set default commit messages and format
+output. Consult the [[https://jj-vcs.github.io/jj/latest/config/][configuration documentation]] for the full set of options.
+
 ** Starting New Work
 *** Initialization
 Before we can use jujutsu to version work, we must initialize a repository.
@@ -127,11 +140,11 @@ changes are added automatically. Execute the ~diff~ command to view the details.
 jj diff
 #+end_src
 
-*** Workflows
+** Workflows
 There are two popular alternative workflows for jujutsu: the squash and edit
 workflows.
-**** Squash Workflow
-***** Create the parent (target)
+*** Squash Workflow
+**** Create the parent (target)
 First create a new change and describe it.
 
 #+begin_src fish
@@ -142,7 +155,7 @@ jj describe -m "Add some feature"
 This change is empty, but has a description. It will be the logical target of
 our curated changes.
 
-***** Create the working copy (staging area)
+**** Create the working copy (staging area)
 
 Next, create a new empty change for our working copy.
 
@@ -154,7 +167,7 @@ jj new
 Begin modifying files. Build changes up in the working copy until you've
 satisfied what you described in the first step.
 
-***** Squash Changes
+**** Squash Changes
 
 Finally, squash those changes to push them down to described change.
 
@@ -167,8 +180,8 @@ jj squash -i # interactively squash certain "hunks"
 The interactive version of the command allows for more fine-grained control even
 within a single file.
 
-**** Edit Workflow
-***** Rewriting Ancestry
+*** Edit Workflow
+**** Rewriting Ancestry
 In this workflow, we edit the change we want to commit to anywhere in the
 history. One way to do this is to add new commits in the /past/.
 
@@ -183,7 +196,7 @@ newly inserted change. You'll notice the working copy ~@~ is now at that commit.
 Any modifications we make at this point are to the earlier (but current) change
 and will trigger further rebases.
 
-***** Editing Arbitrary Changes
+**** Editing Arbitrary Changes
 When we're ready to go back to the future, we can either ~edit~ the change with
 the right change/commit id or use the ~next~ command.
 
@@ -195,23 +208,23 @@ Next moves the working copy to the child of the current change. We must supply
 the ~--edit~ argument to edit the pre-existing change. Otherwise, next will create
 a ~new~ change which would be a sibling to the prior child.
 
-**** Miscellaneous Commands
+*** Miscellaneous Commands
 - abandon : to throw things away from the WC
 - split : to interactively create multiple changes from WC
 
-*** The Revset Language
+** The Revset Language
 Revsets are a functional language for specifying a range of commits. Most
 commands support a ~-r~ parameter for specifying revsets.
-**** Symbols
+*** Symbols
 - @ :: the working copy
 
-**** Operators
+*** Operators
 - x & y :: changes in both x and y
 - x | y :: changes in either x or y
 - ::x :: ancestors of x
 - x:: :: descendants of x
 
-**** Functions
+*** Functions
 - root() :: the root commit of the repository
 - all() :: all /visible/ changes
 - mine() :: all changes authored by the current user
@@ -221,40 +234,7 @@ commands support a ~-r~ parameter for specifying revsets.
 - description(x) :: commits that have x in the description
 
 Consult the full revset language documentation.
-*** Branching and Merging
-All ~jj~ workflows use anonymous branches by default (detached HEADs in Git
-parlance). Since every change is in essence a branch, there's no need to name
-branches to accomplish every day tasks. Similarly, merging is just creating a
-~new~ change with two (or more) parents.
-
-#+begin_src fish
-jj new p1 p2 -m "The new change that merges p1 and p2"
-#+end_src
-
-The new command has a lot of power: it can insert arbitrary changes, including
-merges, at any point in the history.
-
-*** Configuration
-Use the jj ~config~ command to set configuration options in jujutsu. We have
-already used this command to configure the name and email of the current user.
-
-The config command has two sub-commands, ~set~ and ~get~, that do what the name
-implies. Configuration values can be set for a specific repository with the
-~--repo~ switch, or for the current user with the ~--user~ switch.
-
-Let's also prepare to work with remote Git repositories by eliminating the need
-to pass the ~--allow-new~ (or ~-N~) argument every time we push a new bookmark.
-
-#+begin_src fish
-jj config set --user git.push-new-bookmarks true
-#+end_src
-
-Through configuration you can control how jj displays information as well as its
-behavior during certain operations. Besides simple values, jj also has a
-[[https://jj-vcs.github.io/jj/latest/templates/][templating language]] which can be used to set default commit messages and format
-output. Consult the [[https://jj-vcs.github.io/jj/latest/config/][configuration documentation]] for the full set of options.
-
-*** Working with Remote Git Repositories
+** Bookmarks and Remote Git Repositories
 We'll use Github to demonstrate interop with a remote Git repository.
 
 #+begin_src fish
@@ -294,7 +274,7 @@ Once again, a new commit is created after the push to hold any new changes. If
 we tried to squash the commit into the parent, the operation would fail since
 shared history is protected by making it immutable.
 
-**** Rebasing, Revisited
+** Rebasing
 Just as we can push commits from a remote repository, we can also fetch them.
 Make a change in the browser on Github, and commit it directly to the main
 branch. Create some local changes, and be sure to describe them. Then, fetch the
@@ -304,7 +284,7 @@ remote changes.
 jj git fetch
 #+end_src
 
-Your output should look /something/ like mine:
+This produces the following repository state:
 
 #+begin_example
 @  wurtosxt christian.a.romney@gmail.com 2025-09-04 14:38:27 24c384bd
@@ -382,8 +362,6 @@ The rebase command is very powerful. It can act on multiple lineages at once,
 whether on a single commit or all of its descendants. Take time to read through
 the ~rebase~ documentation (~jj rebase --help~).
 
-**** Merging
-Now let's branch off our parent commit to create a parallel development line
 that is a sibling to our working copy.
 
 #+begin_src fish
@@ -480,10 +458,16 @@ Now we can create a new change with both the link and absorb lines merged:
 jj new tq ny -m "Merge intro and patterns into absorb"
 #+end_src
 
-*** Resources
+
+
+
+*** The Magic of Absorption
+jujutsu's ~absorb~ command simplifies the process of pushing integration branch
+changes upstream.
+
 - [[https://jj-vcs.github.io/jj/latest/][jj documentation]]
 - [[https://steveklabnik.github.io/jujutsu-tutorial/][Steve Klabnik's Tutorial]]
 - [[https://jj-for-everyone.github.io/introduction.html][jujutsu for Everyone]]
 - [[https://github.com/jj-vcs/jj][jujutsu Github]]
 - [[https://kubamartin.com/posts/introduction-to-the-jujutsu-vcs/][JJ Intro and Patterns]]
-
+- [[https://v5.chriskrycho.com/journal/jujutsu-megamerges-and-jj-absorb/][JJ Merges and Absorb]]
