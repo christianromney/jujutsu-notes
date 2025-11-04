@@ -499,8 +499,18 @@ jj interdiff --from @-- --to @   # Compare last two commits</code></div>
             </div>
 
             <div class="subsection">
-                <h3>F. Quick Demo</h3>
-                <p>Show making changes, checking status, using <code>jj new</code>, and viewing the log.</p>
+                <h3>F. Practice: Apply What You've Learned</h3>
+                <p>Now it's your turn! Try these exercises to solidify your understanding:</p>
+                <ol>
+                    <li>Make some changes to files in your repository</li>
+                    <li>Run <code>jj status</code> and <code>jj diff</code> to see what changed</li>
+                    <li>Use <code>jj describe -m "Your message"</code> to set a commit message</li>
+                    <li>Run <code>jj new</code> to start a new change</li>
+                    <li>Make more changes and check <code>jj log</code> to see both commits</li>
+                    <li>Try using <code>jj prev</code> to go back to your first change</li>
+                    <li>Experiment with <code>jj next</code> to move forward again</li>
+                </ol>
+                <p><strong>Challenge:</strong> Create a change with multiple files, then use <code>jj commit &lt;files&gt;</code> to commit only specific files, leaving the rest in a new commit.</p>
             </div>
         </section>
 
@@ -563,6 +573,20 @@ jj squash --into @-     # Squash current changes into parent
 jj squash -r &lt;fixup-change-id&gt; --into &lt;target-change-id&gt;</code></div>
 
                 <p><strong>Note:</strong> When you edit an earlier commit, jj automatically rebases all descendants. No manual rebasing needed!</p>
+            </div>
+
+            <div class="subsection">
+                <h3>Practice: Apply What You've Learned</h3>
+                <p>Try these history editing exercises:</p>
+                <ol>
+                    <li>Create two commits with <code>jj commit -m "message"</code></li>
+                    <li>Use <code>jj edit</code> to go back to the first commit and make a change</li>
+                    <li>Run <code>jj log</code> to see how descendants automatically rebased</li>
+                    <li>Create a small "fix typo" commit and use <code>jj squash</code> to combine it with its parent</li>
+                    <li>Try <code>jj rebase -d main</code> to move your changes onto a different base</li>
+                    <li>Use <code>jj undo</code> if you make a mistake - see how easy it is to recover!</li>
+                </ol>
+                <p><strong>Challenge:</strong> Create three commits, then use <code>jj edit</code> to modify the middle one. Watch how jj automatically updates the third commit.</p>
             </div>
         </section>
 
@@ -634,6 +658,19 @@ jj git fetch                 # Import tags from git</code></div>
 
                 <p><strong>Key difference:</strong> Tags don't move when commits are rewritten. Bookmarks follow commits.</p>
             </div>
+
+            <div class="subsection">
+                <h3>Practice: Apply What You've Learned</h3>
+                <p>Practice working with bookmarks:</p>
+                <ol>
+                    <li>Create a bookmark on your current change: <code>jj bookmark set my-feature -r @</code></li>
+                    <li>Run <code>jj bookmark list</code> to see all your bookmarks</li>
+                    <li>Make some changes and use <code>jj log</code> to see the bookmark automatically moved with your commit</li>
+                    <li>Try <code>jj bookmark set another-feature -r @-</code> to create a bookmark on your parent commit</li>
+                    <li>Use <code>jj bookmark delete</code> to clean up bookmarks you don't need</li>
+                </ol>
+                <p><strong>Challenge:</strong> Create two bookmarks pointing to different commits in your history, then use <code>jj edit</code> to work on each one.</p>
+            </div>
         </section>
 
         <section id="remotes" class="section section-content">
@@ -653,6 +690,20 @@ jj rebase -d main@origin     # Rebase your work onto latest main</code></div>
                 <p>For quick prototyping, you can push single changes with auto-generated bookmarks:</p>
                 <div class="command-example"><code>jj git push --change @ --allow-new   # Pushes current change with generated bookmark name</code></div>
                 <p>This is useful for one-off experiments but for real work you'll want to create explicit bookmarks.</p>
+            </div>
+
+            <div class="subsection">
+                <h3>Practice: Apply What You've Learned</h3>
+                <p>Practice syncing with remotes (if you have a remote repository):</p>
+                <ol>
+                    <li>Run <code>jj git fetch</code> to get the latest changes from your remote</li>
+                    <li>Check <code>jj log</code> to see remote bookmarks like <code>main@origin</code></li>
+                    <li>Create a new change and bookmark: <code>jj bookmark set test-sync -r @</code></li>
+                    <li>Try pushing with <code>jj git push --bookmark test-sync --allow-new</code></li>
+                    <li>Make a change to your bookmark and push again (no <code>--allow-new</code> needed this time)</li>
+                    <li>Practice rebasing onto the latest main: <code>jj rebase -d main@origin</code></li>
+                </ol>
+                <p><strong>Challenge:</strong> Create a local change, push it, then use <code>jj edit</code> to modify it and push the updated version.</p>
             </div>
         </section>
 
@@ -717,6 +768,21 @@ jj new                  # Move forward
 jj git push --bookmark feature-part1  # Update existing bookmark (no --allow-new needed)</code></div>
                 <p>All descendant changes automatically rebase on your fixes!</p>
             </div>
+
+            <div class="subsection">
+                <h3>Practice: Apply What You've Learned</h3>
+                <p>Practice creating stacked changes:</p>
+                <ol>
+                    <li>Start from main: <code>jj new main</code></li>
+                    <li>Make changes for "part 1" of a feature</li>
+                    <li>Run <code>jj new</code> to start "part 2" building on part 1</li>
+                    <li>Make more changes for part 2</li>
+                    <li>Create bookmarks: <code>jj bookmark set feature-part1 -r @-</code> and <code>jj bookmark set feature-part2 -r @</code></li>
+                    <li>Try using <code>jj split</code> on a commit with multiple changes to break it into logical pieces</li>
+                    <li>Practice editing an earlier commit in your stack and watch descendants auto-rebase</li>
+                </ol>
+                <p><strong>Challenge:</strong> Create a three-commit stack where each commit builds on the previous one. Edit the middle commit and verify the third commit updates automatically.</p>
+            </div>
         </section>
 
         <section id="revsets" class="section section-content">
@@ -754,6 +820,20 @@ jj git push --bookmark feature-part1  # Update existing bookmark (no --allow-new
 jj log -r @-                   # Show parent
 jj log -r main..@              # Commits between main and working copy
 jj log -r 'author(alice)'      # Commits by alice</code></div>
+            </div>
+
+            <div class="subsection">
+                <h3>Practice: Apply What You've Learned</h3>
+                <p>Experiment with revsets:</p>
+                <ol>
+                    <li>Run <code>jj log -r @</code> to see just your working copy</li>
+                    <li>Try <code>jj log -r @-</code> to see your parent commit</li>
+                    <li>Use <code>jj log -r main..@</code> to see all commits between main and your working copy</li>
+                    <li>Experiment with <code>jj log -r 'bookmarks()'</code> to see all bookmarked commits</li>
+                    <li>Try <code>jj log -r 'trunk()'</code> to see main development branches</li>
+                    <li>Use revsets with other commands: <code>jj diff -r @-</code> or <code>jj show -r main</code></li>
+                </ol>
+                <p><strong>Challenge:</strong> Create a revset expression to show all your commits that aren't in main yet.</p>
             </div>
         </section>
 
@@ -796,6 +876,19 @@ jj git fetch
 jj rebase -d main@origin          # Resolve conflicts
 jj git push --bookmark my-feature  # Now succeeds</code></div>
                 <p><strong>Best practice:</strong> Don't rewrite commits others have based work on!</p>
+            </div>
+
+            <div class="subsection">
+                <h3>Practice: Apply What You've Learned</h3>
+                <p>Understanding immutable commits:</p>
+                <ol>
+                    <li>Run <code>jj config list | grep immutable</code> to see your immutability settings</li>
+                    <li>Try to rebase a commit that's already pushed - observe the safety checks</li>
+                    <li>Create a local change, push it, then try <code>jj edit</code> on it</li>
+                    <li>Understand which commits are protected: run <code>jj log -r 'trunk()'</code> and <code>jj log -r 'tags()'</code></li>
+                    <li>Practice the safe update pattern: fetch, rebase, then push</li>
+                </ol>
+                <p><strong>Challenge:</strong> Intentionally try to force-push to see how jj prevents unsafe operations. Then learn the correct way to update pushed commits.</p>
             </div>
         </section>
 
@@ -866,6 +959,21 @@ jj resolve               # Resolve all conflicts interactively, one by one
                     <li>Switching to work on dependent changes</li>
                 </ul>
             </div>
+
+            <div class="subsection">
+                <h3>Practice: Apply What You've Learned</h3>
+                <p>Practice conflict resolution (you'll need two branches that modify the same files):</p>
+                <ol>
+                    <li>Create a conflict intentionally by rebasing onto a branch with conflicting changes</li>
+                    <li>Run <code>jj status</code> to see which files are conflicted</li>
+                    <li>Open a conflicted file and examine the conflict markers (<code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>, <code>%%%%%%%</code>, <code>+++++++</code>, <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code>)</li>
+                    <li>Try <code>jj resolve --list</code> to see all conflicts</li>
+                    <li>Use <code>jj resolve</code> to open your merge tool and resolve a conflict</li>
+                    <li>Practice continuing work with unresolved conflicts, then resolve them later</li>
+                    <li>Use <code>jj interdiff</code> to review what you changed while resolving</li>
+                </ol>
+                <p><strong>Challenge:</strong> Create a stack of three commits, create a conflict in the first one, and watch how jj handles conflicts in descendant commits.</p>
+            </div>
         </section>
 
         <section id="advanced" class="section section-content">
@@ -928,6 +1036,20 @@ jj duplicate -d main &lt;change-id&gt;   # Duplicate commit onto a different bas
 # jj will binary search through history, running your test command
 # Finds the first commit where the test fails</code></div>
                 <p><strong>When to use:</strong> When you know something broke but don't know which commit caused it.</p>
+            </div>
+
+            <div class="subsection">
+                <h3>Practice: Apply What You've Learned</h3>
+                <p>Experiment with advanced features:</p>
+                <ol>
+                    <li>Create a stack of commits with scattered changes, then use <code>jj absorb</code> to automatically distribute your working copy changes</li>
+                    <li>Try <code>jj duplicate</code> to create a backup of a commit before making risky edits</li>
+                    <li>Use <code>jj diffedit</code> to surgically modify what a commit changes</li>
+                    <li>Create multiple independent features in a linear stack, then use <code>jj parallelize</code> to make them siblings</li>
+                    <li>Practice <code>jj op log</code> to view your command history, then try <code>jj op restore</code> to revert to an earlier state</li>
+                    <li>If you have a test suite, experiment with <code>jj bisect run 'your-test-command'</code> to find a breaking commit</li>
+                </ol>
+                <p><strong>Challenge:</strong> Create a complex mistake (multiple bad commits), then use <code>jj op log</code> and <code>jj op restore</code> to roll back to before the mistake happened.</p>
             </div>
         </section>
 

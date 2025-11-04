@@ -222,9 +222,19 @@ jj interdiff --from @-- --to @   # Compare last two commits
 - Seeing how a change evolved after feedback
 - Note: For same change across history, use ~jj evolog -p~ instead
 
-** F. Quick Demo
+** F. Practice: Apply What You've Learned
 
-Show making changes, checking status, using ~jj new~, and viewing the log.
+Now it's your turn! Try these exercises to solidify your understanding:
+
+1. Make some changes to files in your repository
+2. Run ~jj status~ and ~jj diff~ to see what changed
+3. Use ~jj describe -m "Your message"~ to set a commit message
+4. Run ~jj new~ to start a new change
+5. Make more changes and check ~jj log~ to see both commits
+6. Try using ~jj prev~ to go back to your first change
+7. Experiment with ~jj next~ to move forward again
+
+*Challenge:* Create a change with multiple files, then use ~jj commit <files>~ to commit only specific files, leaving the rest in a new commit.
 
 * 3. History Editing & Rebasing
 
@@ -299,6 +309,19 @@ jj squash -r <fixup-change-id> --into <target-change-id>
 
 *Note:* When you edit an earlier commit, jj automatically rebases all descendants. No manual rebasing needed!
 
+** Practice: Apply What You've Learned
+
+Try these history editing exercises:
+
+1. Create two commits with ~jj commit -m "message"~
+2. Use ~jj edit~ to go back to the first commit and make a change
+3. Run ~jj log~ to see how descendants automatically rebased
+4. Create a small "fix typo" commit and use ~jj squash~ to combine it with its parent
+5. Try ~jj rebase -d main~ to move your changes onto a different base
+6. Use ~jj undo~ if you make a mistake - see how easy it is to recover!
+
+*Challenge:* Create three commits, then use ~jj edit~ to modify the middle one. Watch how jj automatically updates the third commit.
+
 * 4. Working with Bookmarks
 
 Now let's talk about how to organize and name your work. Jujutsu uses "bookmarks" which are similar to Git branches but with important differences.
@@ -369,6 +392,18 @@ jj git fetch                 # Import tags from git
 
 *Key difference:* Tags don't move when commits are rewritten. Bookmarks follow commits.
 
+** Practice: Apply What You've Learned
+
+Practice working with bookmarks:
+
+1. Create a bookmark on your current change: ~jj bookmark set my-feature -r @~
+2. Run ~jj bookmark list~ to see all your bookmarks
+3. Make some changes and use ~jj log~ to see the bookmark automatically moved with your commit
+4. Try ~jj bookmark set another-feature -r @-~ to create a bookmark on your parent commit
+5. Use ~jj bookmark delete~ to clean up bookmarks you don't need
+
+*Challenge:* Create two bookmarks pointing to different commits in your history, then use ~jj edit~ to work on each one.
+
 * 5. Syncing with Remotes
 
 With bookmarks in place, let's connect your local work to GitHub.
@@ -392,6 +427,19 @@ jj git push --change @ --allow-new   # Pushes current change with generated book
 #+end_src
 
 This is useful for one-off experiments but for real work you'll want to create explicit bookmarks.
+
+** Practice: Apply What You've Learned
+
+Practice syncing with remotes (if you have a remote repository):
+
+1. Run ~jj git fetch~ to get the latest changes from your remote
+2. Check ~jj log~ to see remote bookmarks like ~main@origin~
+3. Create a new change and bookmark: ~jj bookmark set test-sync -r @~
+4. Try pushing with ~jj git push --bookmark test-sync --allow-new~
+5. Make a change to your bookmark and push again (no ~--allow-new~ needed this time)
+6. Practice rebasing onto the latest main: ~jj rebase -d main@origin~
+
+*Challenge:* Create a local change, push it, then use ~jj edit~ to modify it and push the updated version.
 
 * 6. Stacked Changes / PR Workflow
 
@@ -457,6 +505,20 @@ jj git push --bookmark feature-part1  # Update existing bookmark (no --allow-new
 
 All descendant changes automatically rebase on your fixes!
 
+** Practice: Apply What You've Learned
+
+Practice creating stacked changes:
+
+1. Start from main: ~jj new main~
+2. Make changes for "part 1" of a feature
+3. Run ~jj new~ to start "part 2" building on part 1
+4. Make more changes for part 2
+5. Create bookmarks: ~jj bookmark set feature-part1 -r @-~ and ~jj bookmark set feature-part2 -r @~
+6. Try using ~jj split~ on a commit with multiple changes to break it into logical pieces
+7. Practice editing an earlier commit in your stack and watch descendants auto-rebase
+
+*Challenge:* Create a three-commit stack where each commit builds on the previous one. Edit the middle commit and verify the third commit updates automatically.
+
 * 7. Understanding Revsets
 
 Throughout this tutorial we've used expressions like ~@~, ~main~, and ~main@origin~. These are "revsets" - jj's query language for selecting commits.
@@ -490,6 +552,19 @@ jj log -r @-                   # Show parent
 jj log -r main..@              # Commits between main and working copy
 jj log -r 'author(alice)'      # Commits by alice
 #+end_src
+
+** Practice: Apply What You've Learned
+
+Experiment with revsets:
+
+1. Run ~jj log -r @~ to see just your working copy
+2. Try ~jj log -r @-~ to see your parent commit
+3. Use ~jj log -r main..@~ to see all commits between main and your working copy
+4. Experiment with ~jj log -r 'bookmarks()'~ to see all bookmarked commits
+5. Try ~jj log -r 'trunk()'~ to see main development branches
+6. Use revsets with other commands: ~jj diff -r @-~ or ~jj show -r main~
+
+*Challenge:* Create a revset expression to show all your commits that aren't in main yet.
 
 * 8. Immutable Commits & Safe History
 
@@ -531,6 +606,18 @@ jj git push --bookmark my-feature  # Now succeeds
 #+end_src
 
 *Best practice:* Don't rewrite commits others have based work on!
+
+** Practice: Apply What You've Learned
+
+Understanding immutable commits:
+
+1. Run ~jj config list | grep immutable~ to see your immutability settings
+2. Try to rebase a commit that's already pushed - observe the safety checks
+3. Create a local change, push it, then try ~jj edit~ on it
+4. Understand which commits are protected: run ~jj log -r 'trunk()'~ and ~jj log -r 'tags()'~
+5. Practice the safe update pattern: fetch, rebase, then push
+
+*Challenge:* Intentionally try to force-push to see how jj prevents unsafe operations. Then learn the correct way to update pushed commits.
 
 * 9. Conflict Resolution
 
@@ -594,6 +681,20 @@ While jj lets you defer resolution, conflicts have real consequences:
 - Pushing to remote
 - Asking for code review
 - Switching to work on dependent changes
+
+** Practice: Apply What You've Learned
+
+Practice conflict resolution (you'll need two branches that modify the same files):
+
+1. Create a conflict intentionally by rebasing onto a branch with conflicting changes
+2. Run ~jj status~ to see which files are conflicted
+3. Open a conflicted file and examine the conflict markers (~<<<<<<<~, ~%%%%%%%~, ~+++++++~, ~>>>>>>>~)
+4. Try ~jj resolve --list~ to see all conflicts
+5. Use ~jj resolve~ to open your merge tool and resolve a conflict
+6. Practice continuing work with unresolved conflicts, then resolve them later
+7. Use ~jj interdiff~ to review what you changed while resolving
+
+*Challenge:* Create a stack of three commits, create a conflict in the first one, and watch how jj handles conflicts in descendant commits.
 
 * 10. Advanced Power Features
 
@@ -671,6 +772,19 @@ jj bisect run 'cargo test'         # Automatically test each commit
 #+end_src
 
 *When to use:* When you know something broke but don't know which commit caused it.
+
+** Practice: Apply What You've Learned
+
+Experiment with advanced features:
+
+1. Create a stack of commits with scattered changes, then use ~jj absorb~ to automatically distribute your working copy changes
+2. Try ~jj duplicate~ to create a backup of a commit before making risky edits
+3. Use ~jj diffedit~ to surgically modify what a commit changes
+4. Create multiple independent features in a linear stack, then use ~jj parallelize~ to make them siblings
+5. Practice ~jj op log~ to view your command history, then try ~jj op restore~ to revert to an earlier state
+6. If you have a test suite, experiment with ~jj bisect run 'your-test-command'~ to find a breaking commit
+
+*Challenge:* Create a complex mistake (multiple bad commits), then use ~jj op log~ and ~jj op restore~ to roll back to before the mistake happened.
 
 * 11. Wrap-up & Resources
 
