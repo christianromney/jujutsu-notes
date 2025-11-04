@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="assets/style.css">
     <style>
         .tutorial-container {
-            max-width: 900px;
+            max-width: 1100px;
         }
 
         .command-example {
@@ -19,6 +19,13 @@
             font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
             font-size: 14px;
             overflow-x: auto;
+            white-space: pre-wrap;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .command-example:hover {
+            transform: translateX(4px);
+            box-shadow: -4px 0 8px rgba(102, 126, 234, 0.1);
         }
 
         .command-example code {
@@ -29,10 +36,46 @@
 
         .section-content {
             margin-bottom: 40px;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .section-content:nth-child(even) {
+            animation-delay: 0.1s;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .subsection {
             margin-top: 30px;
+        }
+
+        .section-content h2 {
+            position: relative;
+            padding-bottom: 8px;
+        }
+
+        .section-content h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.6s ease;
+        }
+
+        .section-content:hover h2::after {
+            width: 100%;
         }
 
         table {
@@ -77,6 +120,65 @@
 
         .tutorial-meta ul {
             margin: 10px 0 0 20px;
+        }
+
+        /* Sticky TOC */
+        .toc {
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+            transition: box-shadow 0.3s ease;
+        }
+
+        /* Scroll progress bar */
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: #e0e0e0;
+            z-index: 9999;
+        }
+
+        .scroll-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+
+        /* Back to top button */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.2s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            font-size: 24px;
+            text-decoration: none;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
         }
     </style>
 </head>
@@ -1057,5 +1159,37 @@ jj duplicate -d main &lt;change-id&gt;   # Duplicate commit onto a different bas
             </p>
         </div>
     </div>
+
+    <!-- Scroll progress bar -->
+    <div class="scroll-progress">
+        <div class="scroll-progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- Back to top button -->
+    <a href="#" class="back-to-top" id="backToTop">↑</a>
+
+    <script>
+        // Scroll progress bar
+        window.addEventListener('scroll', function() {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('progressBar').style.width = scrolled + '%';
+
+            // Back to top button visibility
+            const backToTop = document.getElementById('backToTop');
+            if (winScroll > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        });
+
+        // Back to top smooth scroll
+        document.getElementById('backToTop').addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    </script>
 </body>
 </html>
