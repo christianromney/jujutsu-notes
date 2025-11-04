@@ -7,8 +7,25 @@
     <link rel="stylesheet" href="quiz.css">
     <style>
         .cheatsheet-container {
-            max-width: 900px;
+            max-width: 1200px;
             margin: 0 auto;
+        }
+
+        .two-column-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .two-column-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .column-section {
+            break-inside: avoid;
         }
 
         .back-link {
@@ -142,7 +159,9 @@
             <li><strong>Co-located repos</strong> - both .jj and .git directories, stay synced</li>
         </ul>
 
-        <h2>Setup & Configuration</h2>
+        <div class="two-column-grid">
+            <div class="column-section">
+                <h2>Setup & Configuration</h2>
         <div class="command-block">
             <div class="command-line">brew install jujutsu <span class="comment"># Install on macOS</span></div>
             <div class="command-line">jj config set --user user.name "Your Name"</div>
@@ -150,8 +169,10 @@
             <div class="command-line">jj git init --colocate <span class="comment"># Initialize in existing Git repo</span></div>
             <div class="command-line">jj git clone &lt;url&gt; <span class="comment"># Clone a repository</span></div>
         </div>
+            </div>
 
-        <h2>Viewing State</h2>
+            <div class="column-section">
+                <h2>Viewing State</h2>
         <div class="command-block">
             <div class="command-line">jj status <span class="comment"># Show working copy changes</span></div>
             <div class="command-line">jj diff <span class="comment"># Show changes in current commit</span></div>
@@ -159,8 +180,10 @@
             <div class="command-line">jj log -r &lt;revset&gt; <span class="comment"># Show specific commits</span></div>
             <div class="command-line">jj evolog <span class="comment"># Show how a change evolved over time</span></div>
         </div>
+            </div>
 
-        <h2>Creating & Navigating Changes</h2>
+            <div class="column-section">
+                <h2>Creating & Navigating Changes</h2>
         <div class="command-block">
             <div class="command-line">jj new <span class="comment"># Finish current commit, start new one</span></div>
             <div class="command-line">jj new -m "message" <span class="comment"># Create new commit with message</span></div>
@@ -172,8 +195,10 @@
             <div class="command-line">jj next <span class="comment"># Move to child commit</span></div>
             <div class="command-line">jj prev --edit <span class="comment"># Edit parent directly</span></div>
         </div>
+            </div>
 
-        <h2>History Editing</h2>
+            <div class="column-section">
+                <h2>History Editing</h2>
         <div class="command-block">
             <div class="command-line">jj squash <span class="comment"># Squash @ into parent</span></div>
             <div class="command-line">jj squash --into &lt;dest&gt; <span class="comment"># Squash @ into specific commit</span></div>
@@ -184,8 +209,10 @@
             <div class="command-line">jj abandon <span class="comment"># Discard current change</span></div>
             <div class="command-line">jj fix <span class="comment"># Apply formatters/linters</span></div>
         </div>
+            </div>
 
-        <h2>Working with Files</h2>
+            <div class="column-section">
+                <h2>Working with Files</h2>
         <div class="command-block">
             <div class="command-line">jj file list <span class="comment"># List tracked files</span></div>
             <div class="command-line">jj file show &lt;path&gt; <span class="comment"># Show file contents</span></div>
@@ -193,8 +220,10 @@
             <div class="command-line">jj file track &lt;path&gt; <span class="comment"># Explicitly track file</span></div>
             <div class="command-line">jj file untrack &lt;path&gt; <span class="comment"># Stop tracking file</span></div>
         </div>
+            </div>
 
-        <h2>Bookmarks (Branches)</h2>
+            <div class="column-section">
+                <h2>Bookmarks (Branches)</h2>
         <div class="command-block">
             <div class="command-line">jj bookmark list <span class="comment"># List all bookmarks</span></div>
             <div class="command-line">jj bookmark set &lt;name&gt; -r @ <span class="comment"># Create or update bookmark (most common)</span></div>
@@ -203,16 +232,20 @@
             <div class="command-line">jj bookmark delete &lt;name&gt; <span class="comment"># Delete bookmark</span></div>
             <div class="command-line">jj bookmark track &lt;name&gt;@&lt;remote&gt; <span class="comment"># Track remote bookmark</span></div>
         </div>
+            </div>
 
-        <h2>Syncing with Remotes</h2>
+            <div class="column-section">
+                <h2>Syncing with Remotes</h2>
         <div class="command-block">
             <div class="command-line">jj git fetch <span class="comment"># Fetch from remote</span></div>
             <div class="command-line">jj git push --bookmark &lt;name&gt; <span class="comment"># Push bookmark</span></div>
             <div class="command-line">jj git push --bookmark &lt;name&gt; --allow-new <span class="comment"># Push new bookmark (first time)</span></div>
             <div class="command-line">jj git push --change @ <span class="comment"># Push with auto-generated bookmark</span></div>
         </div>
+            </div>
 
-        <h2>Conflict Resolution</h2>
+            <div class="column-section">
+                <h2>Conflict Resolution</h2>
         <div class="command-block">
             <div class="command-line">jj status <span class="comment"># Shows conflicted files</span></div>
             <div class="command-line"><span class="comment"># Edit files manually to resolve, or:</span></div>
@@ -222,24 +255,30 @@
             <div class="command-line">jj resolve --tool=:ours <span class="comment"># Use our side</span></div>
             <div class="command-line">jj resolve --tool=:theirs <span class="comment"># Use their side</span></div>
         </div>
+            </div>
 
-        <h2>Comparing Changes</h2>
+            <div class="column-section">
+                <h2>Comparing Changes</h2>
         <div class="command-block">
             <div class="command-line">jj diff <span class="comment"># Show changes in @</span></div>
             <div class="command-line">jj diff -r &lt;rev&gt; <span class="comment"># Show changes in specific commit</span></div>
             <div class="command-line">jj interdiff --from &lt;a&gt; --to &lt;b&gt; <span class="comment"># Compare two versions</span></div>
             <div class="command-line">jj evolog -p <span class="comment"># Show evolution with diffs</span></div>
         </div>
+            </div>
 
-        <h2>Safety & Undo</h2>
+            <div class="column-section">
+                <h2>Safety & Undo</h2>
         <div class="command-block">
             <div class="command-line">jj undo <span class="comment"># Undo last operation</span></div>
             <div class="command-line">jj redo <span class="comment"># Redo after undo</span></div>
             <div class="command-line">jj op log <span class="comment"># Show operation history</span></div>
             <div class="command-line">jj op restore &lt;id&gt; <span class="comment"># Restore to specific operation</span></div>
         </div>
+            </div>
 
-        <h2>Advanced Commands</h2>
+            <div class="column-section">
+                <h2>Advanced Commands</h2>
         <div class="command-block">
             <div class="command-line">jj absorb <span class="comment"># Auto-distribute changes to appropriate commits</span></div>
             <div class="command-line">jj diffedit -r &lt;rev&gt; <span class="comment"># Interactively edit commit's changes</span></div>
@@ -248,8 +287,10 @@
             <div class="command-line">jj bisect run '&lt;command&gt;' <span class="comment"># Find bug-introducing commit</span></div>
             <div class="command-line">jj metaedit <span class="comment"># Modify commit metadata</span></div>
         </div>
+            </div>
 
-        <h2>Common Revsets</h2>
+            <div class="column-section">
+                <h2>Common Revsets</h2>
         <div class="command-block">
             <div class="command-line">@ <span class="comment"># Current working copy</span></div>
             <div class="command-line">@- <span class="comment"># Parent of working copy</span></div>
@@ -259,6 +300,8 @@
             <div class="command-line">trunk() <span class="comment"># Main development branches</span></div>
             <div class="command-line">tags() <span class="comment"># All tags</span></div>
             <div class="command-line">bookmarks() <span class="comment"># All local bookmarks</span></div>
+        </div>
+            </div>
         </div>
 
         <h2>Quick Workflow Examples</h2>
