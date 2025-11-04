@@ -26,6 +26,22 @@
 
         .column-section {
             break-inside: avoid;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        .column-section:nth-child(even) {
+            animation-delay: 0.1s;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .back-link {
@@ -34,10 +50,13 @@
             color: #667eea;
             text-decoration: none;
             font-weight: 600;
+            transition: transform 0.2s ease, color 0.2s ease;
         }
 
         .back-link:hover {
             text-decoration: underline;
+            transform: translateX(-4px);
+            color: #764ba2;
         }
 
         h1 {
@@ -56,6 +75,22 @@
             margin-bottom: 16px;
             padding-bottom: 8px;
             border-bottom: 2px solid #e0e0e0;
+            position: relative;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.6s ease;
+        }
+
+        .column-section:hover h2::after {
+            width: 100%;
         }
 
         h3 {
@@ -75,6 +110,12 @@
             font-size: 14px;
             line-height: 1.8;
             overflow-x: auto;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .command-block:hover {
+            transform: translateX(4px);
+            box-shadow: -4px 0 8px rgba(102, 126, 234, 0.1);
         }
 
         .command-line {
@@ -91,6 +132,16 @@
             border-radius: 8px;
             padding: 20px 20px 20px 40px;
             margin-bottom: 20px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
 
         .concept-list li {
@@ -108,6 +159,12 @@
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .workflow-example:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
         }
 
         .workflow-title {
@@ -144,7 +201,11 @@
 </head>
 <body>
     <div class="container cheatsheet-container">
-        <a href="index.html" class="back-link">← Back to Tests</a>
+        <p style="margin-bottom: 10px;">
+            <a href="../index.html" class="back-link">← Back to Home</a>
+            <span style="color: #888; margin: 0 8px;">·</span>
+            <a href="index.html" class="back-link" style="margin-bottom: 0;">Back to Tests</a>
+        </p>
 
         <h1>Jujutsu (jj) Command Cheatsheet</h1>
         <p class="subtitle">Quick reference for common Jujutsu commands</p>

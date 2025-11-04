@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jujutsu VCS Tutorial</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <style>
+        .tutorial-container {
+            max-width: 900px;
+        }
+
+        .command-example {
+            background: #f5f5f5;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+
+        .command-example code {
+            background: none;
+            padding: 0;
+            color: #333;
+        }
+
+        .section-content {
+            margin-bottom: 40px;
+        }
+
+        .subsection {
+            margin-top: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+
+        table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        table td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        table code {
+            font-size: 13px;
+        }
+
+        .tutorial-meta {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .tutorial-meta h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+
+        .tutorial-meta ul {
+            margin: 10px 0 0 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container tutorial-container">
+        <a href="index.html" class="back-link">Back to Home</a>
+
+        <h1>Jujutsu VCS Tutorial</h1>
+        <p class="subtitle">Learn Jujutsu from basics to advanced features</p>
+
+        <div class="tutorial-meta">
+            <h3>Tutorial Overview</h3>
+            <p>
+                Jujutsu (jj) is a modern version control system that layers powerful features on top of Git.
+                Think of it as Git with a better command-line interface and workflow - you keep your existing
+                Git repositories and remotes, but gain features like automatic rebasing, first-class conflicts,
+                and an operation log that makes mistakes reversible.
+            </p>
+            <p>
+                This tutorial teaches you jj in the context of GitHub-based development. You'll learn how jj's
+                design makes common Git workflows simpler and safer, particularly around history editing and
+                managing stacks of changes for pull requests.
+            </p>
+            <p><strong>Target Audience:</strong> Developers with intermediate to advanced Git experience, working with GitHub</p>
+            <p><strong>What You'll Learn:</strong></p>
+            <ul>
+                <li>Core jj concepts and how they differ from Git</li>
+                <li>Daily workflow: creating, editing, and navigating changes</li>
+                <li>Managing bookmarks (branches) and syncing with remotes</li>
+                <li>Stacking changes for better pull request workflows</li>
+                <li>Safe history editing and conflict resolution</li>
+            </ul>
+        </div>
+
+        <div class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#setup">1. Setup & Installation</a></li>
+                <li><a href="#core-concepts">2. Core Concepts & Daily Workflow</a></li>
+                <li><a href="#history-editing">3. History Editing & Rebasing</a></li>
+                <li><a href="#bookmarks">4. Working with Bookmarks</a></li>
+                <li><a href="#remotes">5. Syncing with Remotes</a></li>
+                <li><a href="#stacked-changes">6. Stacked Changes / PR Workflow</a></li>
+                <li><a href="#revsets">7. Understanding Revsets</a></li>
+                <li><a href="#immutable">8. Immutable Commits & Safe History</a></li>
+                <li><a href="#conflicts">9. Conflict Resolution</a></li>
+                <li><a href="#advanced">10. Advanced Power Features</a></li>
+                <li><a href="#wrapup">11. Wrap-up & Resources</a></li>
+            </ul>
+        </div>
+
+        <section id="setup" class="section section-content">
+            <h2>1. Setup & Installation</h2>
+            <p>Let's get jj installed and configured. The setup process will feel familiar if you've used Git before.</p>
+
+            <div class="subsection">
+                <h3>A. Installation</h3>
+                <p>On macOS, install jj via Homebrew:</p>
+                <div class="command-example"><code>brew install jujutsu</code></div>
+            </div>
+
+            <div class="subsection">
+                <h3>B. Essential Configuration</h3>
+                <p>Configure your identity for commits. Note that jj uses <code>--user</code> instead of Git's <code>--global</code>:</p>
+                <div class="command-example"><code>jj config set --user user.name "Your Name"
+jj config set --user user.email "your.email@example.com"</code></div>
+            </div>
+
+            <div class="subsection">
+                <h3>C. Commit Signing Setup</h3>
+                <p>Many organizations require signed commits for security. Jujutsu supports both GPG and SSH signing - choose whichever you already have configured.</p>
+
+                <h4>For GPG:</h4>
+                <div class="command-example"><code># List available GPG keys and fingerprints
+gpg --list-secret-keys --keyid-format=long
+
+# Configure jj to use GPG
+jj config set --user signing.backend "gpg"
+jj config set --user signing.behavior "own"
+jj config set --user signing.key "4ED556E9729E000F"  # Replace with your key fingerprint</code></div>
+
+                <h4>For SSH (simpler option):</h4>
+                <div class="command-example"><code># Find your SSH public key
+ls ~/.ssh/*.pub
+cat ~/.ssh/id_ed25519.pub  # Or your key name
+
+# Configure jj to use SSH
+jj config set --user signing.backend "ssh"
+jj config set --user signing.behavior "own"
+jj config set --user signing.key "~/.ssh/id_ed25519.pub"</code></div>
+
+                <p>Both of these examples use the "own" signing behavior which signs commits you create or edit.</p>
+            </div>
+
+            <div class="subsection">
+                <h3>D. Initializing a Co-located Repository</h3>
+                <p>Jujutsu works alongside Git in "co-located" repositories. This means you can use both <code>jj</code> and <code>git</code> commands on the same repo, and they stay synchronized automatically.</p>
+                <div class="command-example"><code>jj git init --colocate  # In existing Git repo, or use jj git clone</code></div>
+                <p>After running this command, you'll have both <code>.jj</code> and <code>.git</code> directories. Git will show "detached HEAD" - this is normal and expected with jj. The two systems synchronize on every jj command, so you can use Git tools when needed while primarily working with jj.</p>
+            </div>
+        </section>
+
+        <section id="core-concepts" class="section section-content">
+            <h2>2. Core Concepts & Daily Workflow</h2>
+            <p>Now that jj is installed, let's understand its core concepts. These differ from Git in ways that make common operations simpler and safer.</p>
+
+            <div class="subsection">
+                <h3>A. Understanding the Working Copy</h3>
+                <p>The first mind-shift: in jj, your working copy <strong>is</strong> a commit. There's no staging area - when you edit files, those changes automatically become part of the current commit (represented by <code>@</code>).</p>
+                <div class="command-example"><code># Make changes to files...
+jj status      # Working copy automatically amends!
+jj diff        # See what changed in @</code></div>
+                <p>Every time you run a jj command, it automatically snapshots your working directory and amends the <code>@</code> commit. This eliminates the need for <code>git add</code> - your changes are always part of a commit.</p>
+            </div>
+
+            <div class="subsection">
+                <h3>B. Understanding Changes vs Commits</h3>
+                <p>This is a critical distinction: jj tracks both <strong>change IDs</strong> and <strong>commit IDs</strong>.</p>
+                <ul>
+                    <li><strong>Change ID</strong>: Identifies a logical piece of work. Stays the same when you edit/amend the commit.</li>
+                    <li><strong>Commit ID</strong>: Identifies a specific snapshot. Changes every time you modify the commit.</li>
+                </ul>
+                <p><strong>Why both?</strong> Change IDs let you refer to "that feature I'm working on" across rewrites. Commit IDs identify exact historical snapshots. This means you can use change IDs in your daily workflow without worrying about them changing when you amend commits.</p>
+                <p>Changes eliminate the need for branches in the way that Git imagines them.</p>
+                <div class="command-example"><code>jj log                       # Shows both IDs for each commit
+# Example output:
+# @  youzwxvz christian.a.romney@gmail.com 2025-11-03 22:12:08 e35b5e0f
+# │  Create jujutsu VCS tutorial outline
+# ◆  pswmtnwq christian.a.romney@gmail.com 2025-09-05 08:04:28 main 7cc5e620
+# │  Reorder content and fix headings
+#
+# First part (youzwxvz) = Change ID (stays stable when you amend)
+# Last part (e35b5e0f) = Commit ID (changes every time you modify)</code></div>
+            </div>
+
+            <div class="subsection">
+                <h3>C. Basic Operations & Workflow</h3>
+                <p>The key concept: every jj command auto-amends the working copy commit. This means you're always building on your current change until you explicitly create a new one.</p>
+                <div class="command-example"><code># Viewing state
+jj status                    # See what's changed in working copy
+jj diff                      # Show changes in detail
+jj log                       # See commit graph with both change and commit IDs
+
+# Making changes
+# ... edit files ...
+# Changes automatically amend @ on next jj command
+
+# Finishing a change and starting new work
+jj new                       # "Finish" current commit, create new empty one on top
+jj new -m "message"          # Same, but set message for new commit
+jj describe -m "message"     # Set/update commit message for current change
+jj commit -m "message"       # Shortcut: describe + new (set message and move forward)
+
+# Navigating between changes
+jj edit &lt;change-id&gt;          # Switch working copy to a different change
+jj prev                      # Move to parent commit (creates new @ on parent)
+jj next                      # Move to child commit (creates new @ on child)
+jj prev --edit               # Edit parent directly (like jj edit @-)
+
+# Viewing history
+jj evolog                    # Evolution log - see how a change evolved over time
+jj interdiff --from @ --to @-  # Compare changes between two commits
+
+# Modifying commits
+jj metaedit                  # Modify metadata (author, timestamps, change-id)
+
+# Safety net
+jj undo                      # Undo last operation
+jj redo                      # Redo operation (after undo)</code></div>
+                <p><strong>Think of <code>jj new</code> as:</strong> "I'm done with this change, start a new one"</p>
+            </div>
+
+            <div class="subsection">
+                <h3>D. When to Use: jj new vs jj commit vs jj describe</h3>
+                <p>With multiple commands that seem similar, it helps to know when to use each:</p>
+
+                <p><strong><code>jj new</code></strong>: Start a new empty commit on top</p>
+                <ul>
+                    <li>Use when: You want to start fresh work without setting a message yet</li>
+                    <li>Result: New empty commit becomes @</li>
+                </ul>
+
+                <p><strong><code>jj describe</code></strong>: Set/update the commit message for @</p>
+                <ul>
+                    <li>Use when: You want to add/change the message but keep working on @</li>
+                    <li>Result: @ gets a message, stays as working copy</li>
+                </ul>
+
+                <p><strong><code>jj commit -m "message"</code></strong>: Shortcut for <code>jj describe + jj new</code></p>
+                <ul>
+                    <li>Use when: You're done AND have a message ready</li>
+                    <li>Result: @ gets the message and new empty commit created on top</li>
+                    <li><strong>Most similar to <code>git commit</code></strong></li>
+                </ul>
+
+                <p><strong><code>jj commit &lt;files&gt;</code></strong>: Like <code>jj split</code> but simpler - move specific files to a new commit</p>
+                <ul>
+                    <li>Use when: You want to commit only certain files</li>
+                    <li>Result: Selected files go to @, rest stays in new child commit</li>
+                </ul>
+
+                <p><strong><code>jj prev</code> / <code>jj next</code></strong>: Navigate linearly through a stack</p>
+                <ul>
+                    <li>Use when: Working through a stack of commits sequentially</li>
+                    <li>Result: Creates new @ on parent/child (by default) or edits directly (with <code>--edit</code>)</li>
+                    <li>Shortcut for <code>jj new &lt;parent&gt;</code> or <code>jj new &lt;child&gt;</code></li>
+                </ul>
+            </div>
+
+            <div class="subsection">
+                <h3>E. Working with Files</h3>
+                <p>Jujutsu provides commands for inspecting and managing files, though most file operations happen naturally through editing.</p>
+
+                <h4>Listing and viewing:</h4>
+                <div class="command-example"><code>jj file list                 # List all tracked files in @
+jj file show &lt;path&gt;          # Show contents of file in @
+jj file show &lt;path&gt; -r &lt;rev&gt; # Show file contents in specific revision</code></div>
+
+                <h4>Tracking files (usually automatic):</h4>
+                <div class="command-example"><code>jj file track &lt;path&gt;         # Explicitly mark file as tracked
+jj file untrack &lt;path&gt;       # Stop tracking file
+# Note: jj auto-tracks new files by default!</code></div>
+
+                <p><strong>When to use <code>jj file</code> commands:</strong></p>
+                <ul>
+                    <li><code>jj file list</code>: See what files are in a commit (like <code>git ls-files</code>)</li>
+                    <li><code>jj file show</code>: View file contents without checking out</li>
+                    <li><code>jj file track/untrack</code>: Rarely needed - use when you want explicit control over tracking</li>
+                </ul>
+
+                <h4><code>jj interdiff</code> - Compare Two Versions:</h4>
+                <p>One particularly useful command for PR workflows is <code>jj interdiff</code>, which compares what changed between two commits:</p>
+                <div class="command-example"><code>jj interdiff --from &lt;old-version&gt; --to &lt;new-version&gt;
+# Common use: See what changed after addressing PR feedback
+jj interdiff --from @-- --to @   # Compare last two commits</code></div>
+
+                <p><strong>When to use:</strong></p>
+                <ul>
+                    <li>Reviewing what changed between PR iterations</li>
+                    <li>Seeing how a change evolved after feedback</li>
+                    <li>Note: For same change across history, use <code>jj evolog -p</code> instead</li>
+                </ul>
+            </div>
+
+            <div class="subsection">
+                <h3>F. Quick Demo</h3>
+                <p>Show making changes, checking status, using <code>jj new</code>, and viewing the log.</p>
+            </div>
+        </section>
+
+        <section id="history-editing" class="section section-content">
+            <h2>3. History Editing & Rebasing</h2>
+            <p>One of jj's superpowers is making history editing safe and straightforward. Unlike Git, where history operations can feel risky, jj provides strong guarantees.</p>
+
+            <div class="subsection">
+                <h3>A. How jj Makes This Easy</h3>
+                <ul>
+                    <li>All operations logged (<code>jj op log</code>)</li>
+                    <li><code>jj undo</code> reverses last operation</li>
+                    <li>Working on your local commits is safe</li>
+                </ul>
+                <p>This means you can confidently rewrite history knowing you can always undo mistakes.</p>
+            </div>
+
+            <div class="subsection">
+                <h3>B. Common Operations</h3>
+                <p>Let's understand when and why you'd use these history editing commands:</p>
+                <ul>
+                    <li><strong><code>squash</code></strong>: Combine multiple commits into one. Use when you have "fix typo" or "address review" commits that should be part of the original change.</li>
+                    <li><strong><code>rebase -d &lt;dest&gt;</code></strong>: Move your changes to build on top of a different commit (the "destination"). "Rebasing onto main" means updating your work to start from the latest main branch instead of wherever you originally branched from.</li>
+                    <li><strong><code>abandon</code></strong>: Discard a change you no longer need. Unlike delete, this preserves the descendants by rebasing them onto the abandoned commit's parent.</li>
+                </ul>
+
+                <h4>Commands:</h4>
+                <div class="command-example"><code>jj describe             # Change commit message
+jj squash               # Squash @ into parent (combine commits)
+jj edit &lt;change-id&gt;     # Resume editing an old commit
+jj rebase -d main       # Rebase onto main (move changes to build on main)
+jj abandon              # Discard a change (preserves descendants)
+jj fix                  # Run formatters/linters on commits automatically</code></div>
+
+                <h4><code>jj fix</code> - Automatic Code Formatting:</h4>
+                <p>The <code>jj fix</code> command applies configured formatters (prettier, black, clang-format, etc.) to commits and updates descendants automatically:</p>
+                <div class="command-example"><code>jj fix                  # Fix all mutable commits
+jj fix -s @             # Fix only current commit
+jj fix -s 'main..@'     # Fix all commits in current stack</code></div>
+                <p>Configure tools in <code>.jj/config.toml</code> or global config.</p>
+            </div>
+
+            <div class="subsection">
+                <h3>C. Demo Examples</h3>
+
+                <h4>Fixing a typo in an earlier commit:</h4>
+                <p>Here's where jj really shines - you can edit any commit in your history:</p>
+                <div class="command-example"><code>jj edit &lt;change-id&gt;     # Switch to that commit
+# Fix the typo...
+# Descendants automatically rebase on your changes!
+jj new                  # Move forward to continue working</code></div>
+
+                <h4>When to use squash - combining fixup commits:</h4>
+                <p>If you've accumulated small fixup commits, squash combines them into the original change:</p>
+                <div class="command-example"><code># Scenario: You're at @ and realize you need to fix something in @-
+# Make the fixes in your current working copy...
+jj squash --into @-     # Squash current changes into parent
+
+# Alternative: Already created separate "fix typo" commits? Squash them:
+jj squash -r &lt;fixup-change-id&gt; --into &lt;target-change-id&gt;</code></div>
+
+                <p><strong>Note:</strong> When you edit an earlier commit, jj automatically rebases all descendants. No manual rebasing needed!</p>
+            </div>
+        </section>
+
+        <section id="bookmarks" class="section section-content">
+            <h2>4. Working with Bookmarks</h2>
+            <p>Now let's talk about how to organize and name your work. Jujutsu uses "bookmarks" which are similar to Git branches but with important differences.</p>
+
+            <div class="subsection">
+                <h3>A. What Are Bookmarks?</h3>
+                <p>Bookmarks are jj's version of Git branches - named pointers to commits.</p>
+                <p><strong>Think of bookmarks as:</strong> Labels you attach to commits to track your work and push to GitHub as branches.</p>
+            </div>
+
+            <div class="subsection">
+                <h3>B. How Bookmarks Differ from Git Branches</h3>
+                <p>Understanding these differences helps explain why bookmarks feel more natural in daily use:</p>
+
+                <h4>Key differences:</h4>
+                <ul>
+                    <li><strong>Automatic movement</strong>: Bookmarks automatically follow commits when you rebase or rewrite them. Git branches stay fixed unless you explicitly move them.</li>
+                    <li><strong>No "active" bookmark</strong>: In Git, you're always "on" a branch. In jj, there's no active bookmark - you work with commits directly via change IDs.</li>
+                    <li><strong>Conflict handling</strong>: Bookmarks can become conflicted (shown with <code>??</code>) when updated from multiple sources. You resolve these explicitly.</li>
+                </ul>
+
+                <p><strong>Why this matters:</strong> Bookmarks track your intent (which commits belong to which feature) while jj handles the mechanics of keeping them up-to-date.</p>
+            </div>
+
+            <div class="subsection">
+                <h3>C. Creating and Managing Bookmarks</h3>
+                <div class="command-example"><code>jj bookmark list                         # Show all bookmarks
+jj bookmark set feature-x -r @           # Create or update bookmark (most common)
+jj bookmark create feature-x -r @        # Create NEW bookmark (fails if exists)
+jj bookmark move feature-x -r &lt;rev&gt;      # Move existing bookmark
+jj bookmark delete old-feature           # Delete local bookmark
+jj bookmark track feature-x@origin       # Start tracking &lt;branch&gt;@&lt;remote&gt; with a bookmark</code></div>
+            </div>
+
+            <div class="subsection">
+                <h3>D. Understanding Bookmark Tracking</h3>
+                <p>Tracking is a concept that helps keep your local bookmarks synchronized with remotes.</p>
+
+                <p><strong>What does tracking do?</strong></p>
+                <p>When you track a remote bookmark (like <code>feature-x@origin</code>), <code>jj git fetch</code> will automatically create or update a local bookmark (<code>feature-x</code>) to match the remote.</p>
+
+                <p><strong>Without tracking:</strong> You can still see and reference <code>feature-x@origin</code>, but fetch won't automatically create a local <code>feature-x</code> bookmark.</p>
+
+                <p><strong>When to track:</strong> Track remote bookmarks you're actively working on and want to stay synchronized with.</p>
+            </div>
+
+            <div class="subsection">
+                <h3>E. Which Command to Use?</h3>
+                <p>With multiple bookmark commands available, here's when to use each:</p>
+                <ul>
+                    <li><strong><code>set</code></strong>: Use this most of the time - works for both new and existing bookmarks</li>
+                    <li><strong><code>create</code></strong>: When you want an error if the bookmark already exists (safer but stricter)</li>
+                    <li><strong><code>move</code></strong>: When you need advanced features like <code>--allow-backwards</code> or <code>--from</code> filters</li>
+                </ul>
+            </div>
+
+            <div class="subsection">
+                <h3>F. Tags vs Bookmarks</h3>
+                <p>Tags serve a different purpose than bookmarks - they mark immutable points in history.</p>
+
+                <p><strong>Tags</strong> are like bookmarks but immutable - they mark specific points (usually releases):</p>
+                <div class="command-example"><code>jj tag list                  # List all tags
+# Note: Create tags via git (jj syncs them automatically)
+git tag v1.0.0
+jj git fetch                 # Import tags from git</code></div>
+
+                <p><strong>Key difference:</strong> Tags don't move when commits are rewritten. Bookmarks follow commits.</p>
+            </div>
+        </section>
+
+        <section id="remotes" class="section section-content">
+            <h2>5. Syncing with Remotes</h2>
+            <p>With bookmarks in place, let's connect your local work to GitHub.</p>
+
+            <div class="subsection">
+                <h3>A. Fetching Updates</h3>
+                <p>Fetching in jj works similarly to Git, pulling down remote changes:</p>
+                <div class="command-example"><code>jj git fetch                 # Pull changes from remote
+jj log                       # See remote bookmarks (e.g., main@origin)
+jj rebase -d main@origin     # Rebase your work onto latest main</code></div>
+            </div>
+
+            <div class="subsection">
+                <h3>B. Basic Push (without bookmarks)</h3>
+                <p>For quick prototyping, you can push single changes with auto-generated bookmarks:</p>
+                <div class="command-example"><code>jj git push --change @ --allow-new   # Pushes current change with generated bookmark name</code></div>
+                <p>This is useful for one-off experiments but for real work you'll want to create explicit bookmarks.</p>
+            </div>
+        </section>
+
+        <section id="stacked-changes" class="section section-content">
+            <h2>6. Stacked Changes / PR Workflow</h2>
+            <p>One of jj's most powerful patterns is "stacking" - breaking large features into small, dependent pull requests. Let's understand why and how.</p>
+
+            <div class="subsection">
+                <h3>A. Why Stack Changes?</h3>
+
+                <p><strong>The problem with large PRs:</strong></p>
+                <ul>
+                    <li>Hard to review (reviewers lose focus)</li>
+                    <li>Risky to merge (many changes at once)</li>
+                    <li>Slow feedback cycle (must finish everything before getting feedback)</li>
+                </ul>
+
+                <p><strong>Stacking solves this by:</strong></p>
+                <ul>
+                    <li>Breaking large features into small, reviewable chunks</li>
+                    <li>Getting feedback on early parts while working on later parts</li>
+                    <li>Making each PR focused and easy to understand</li>
+                </ul>
+
+                <p><strong>Example:</strong> Instead of one huge "Add user authentication" PR, stack:</p>
+                <ol>
+                    <li>PR 1: Add database schema for users</li>
+                    <li>PR 2: Add authentication API endpoints (builds on PR 1)</li>
+                    <li>PR 3: Add login UI (builds on PR 2)</li>
+                </ol>
+                <p>Each PR can be reviewed and merged independently!</p>
+
+                <h4>What if your change is already too big?</h4>
+                <p>Use <code>jj split</code> to break it apart:</p>
+                <div class="command-example"><code>jj split                # Interactively choose which changes go into first commit
+# jj opens an editor showing all changes
+# Select which hunks belong in the first commit
+# Everything else stays in the second commit</code></div>
+                <p>After splitting, you have two commits where you had one - perfect for creating separate PRs!</p>
+            </div>
+
+            <div class="subsection">
+                <h3>B. Building Dependent PRs</h3>
+                <p>Here's the workflow for creating a stack:</p>
+                <div class="command-example"><code>jj new main                                      # Start from main
+# Make changes...
+jj new                                            # Start second change
+# Make more changes...
+jj bookmark set feature-part1 -r @-              # Bookmark first change
+jj bookmark set feature-part2 -r @               # Bookmark second change
+jj git push --bookmark feature-part1 --allow-new # First time push requires --allow-new
+jj git push --bookmark feature-part2 --allow-new</code></div>
+                <p>Note the <code>--allow-new</code> flag - this is required the first time you push a new bookmark to protect against typos.</p>
+            </div>
+
+            <div class="subsection">
+                <h3>C. Addressing PR Feedback</h3>
+                <p>When you get feedback on a PR in your stack, jj makes it easy to fix:</p>
+                <div class="command-example"><code>jj edit &lt;change-id&gt;     # Go back to specific change in stack
+# Make fixes...
+jj new                  # Move forward
+jj git push --bookmark feature-part1  # Update existing bookmark (no --allow-new needed)</code></div>
+                <p>All descendant changes automatically rebase on your fixes!</p>
+            </div>
+        </section>
+
+        <section id="revsets" class="section section-content">
+            <h2>7. Understanding Revsets</h2>
+            <p>Throughout this tutorial we've used expressions like <code>@</code>, <code>main</code>, and <code>main@origin</code>. These are "revsets" - jj's query language for selecting commits.</p>
+
+            <div class="subsection">
+                <h3>A. What Are Revsets?</h3>
+                <p>Revsets are jj's query language for selecting commits. Think of them as "commit selectors."</p>
+                <p><strong>Full reference:</strong> <a href="https://jj-vcs.github.io/jj/latest/revsets/" target="_blank">https://jj-vcs.github.io/jj/latest/revsets/</a></p>
+                <p>You've already been using simple revsets, but they can be much more powerful.</p>
+            </div>
+
+            <div class="subsection">
+                <h3>B. Basic Revset Syntax</h3>
+
+                <h4>Symbols:</h4>
+                <ul>
+                    <li><code>@</code> - your working copy commit</li>
+                    <li><code>@-</code> - parent of working copy</li>
+                    <li><code>main</code> - a bookmark/branch</li>
+                    <li><code>main@origin</code> - bookmark on remote</li>
+                </ul>
+
+                <h4>Common Functions:</h4>
+                <ul>
+                    <li><code>trunk()</code> - main development branches (main, master, trunk)</li>
+                    <li><code>tags()</code> - tagged releases</li>
+                    <li><code>bookmarks()</code> - all local bookmarks</li>
+                    <li><code>remote_bookmarks()</code> - bookmarks on remotes</li>
+                </ul>
+
+                <h4>Examples:</h4>
+                <div class="command-example"><code>jj log -r @                    # Show working copy
+jj log -r @-                   # Show parent
+jj log -r main..@              # Commits between main and working copy
+jj log -r 'author(alice)'      # Commits by alice</code></div>
+            </div>
+        </section>
+
+        <section id="immutable" class="section section-content">
+            <h2>8. Immutable Commits & Safe History</h2>
+            <p>Now that you understand how to work with history, let's talk about the safety rails that prevent you from breaking shared work.</p>
+
+            <div class="subsection">
+                <h3>A. Why This Matters</h3>
+                <p>In Git, it's easy to accidentally rewrite commits that others have based work on, breaking their repositories. Force pushing can overwrite work. These accidents cause frustration and lost time.</p>
+                <p>Jujutsu prevents these problems through immutable commits - certain commits are protected from rewriting.</p>
+            </div>
+
+            <div class="subsection">
+                <h3>B. What Are Immutable Commits?</h3>
+                <p>Jujutsu protects certain commits from being rewritten:</p>
+                <ul>
+                    <li><code>trunk()</code> - main/master branches</li>
+                    <li><code>tags()</code> - tagged releases</li>
+                    <li><code>untracked_remote_bookmarks()</code> - commits pushed to remotes</li>
+                </ul>
+
+                <p><strong>Configuration example (optional to show):</strong></p>
+                <div class="command-example"><code>jj config list | grep immutable</code></div>
+
+                <p>These protections mean:</p>
+                <ul>
+                    <li><strong>No rewriting shared history</strong> - can't accidentally rebase commits others have</li>
+                    <li><strong>No force push needed</strong> - jj checks remote state before pushing (like <code>--force-with-lease</code>)</li>
+                    <li><strong>Safe by default</strong> - protects your team from broken histories</li>
+                </ul>
+            </div>
+
+            <div class="subsection">
+                <h3>C. When You Need to Update a Pushed Commit</h3>
+                <p>If you need to update a commit you've already pushed, jj ensures you do it safely:</p>
+                <div class="command-example"><code>jj git push --bookmark my-feature  # Fails if remote diverged
+# Must fetch first if remote changed:
+jj git fetch
+jj rebase -d main@origin          # Resolve conflicts
+jj git push --bookmark my-feature  # Now succeeds</code></div>
+                <p><strong>Best practice:</strong> Don't rewrite commits others have based work on!</p>
+            </div>
+        </section>
+
+        <section id="conflicts" class="section section-content">
+            <h2>9. Conflict Resolution</h2>
+            <p>Let's talk about what happens when your changes conflict with others' changes - an inevitable part of collaborative development.</p>
+
+            <div class="subsection">
+                <h3>A. How jj Handles Conflicts Differently</h3>
+                <p>Jujutsu takes a unique approach to conflicts that gives you more flexibility:</p>
+
+                <h4>Key differences from Git:</h4>
+                <ul>
+                    <li><strong>Conflicts are first-class objects</strong>: You can commit with unresolved conflicts and continue working</li>
+                    <li><strong>No special commands needed</strong>: No <code>git rebase --continue</code> or <code>git merge --continue</code> - just edit the conflict and the change is automatically amended</li>
+                    <li><strong>Operations don't fail</strong>: <code>jj rebase</code> succeeds even with conflicts; descendants automatically rebase too</li>
+                </ul>
+
+                <p><strong>Why this matters:</strong> You can keep your work rebased on main without blocking on conflict resolution. Resolve conflicts when you're ready.</p>
+            </div>
+
+            <div class="subsection">
+                <h3>B. Three Ways to Resolve Conflicts</h3>
+
+                <h4>Method 1: Manual editing (simple conflicts)</h4>
+                <div class="command-example"><code>jj rebase -d main        # May create conflicts - operation still succeeds!
+jj status                # Shows conflicted files with conflict markers
+# Edit files to resolve (markers: &lt;&lt;&lt;&lt;&lt;&lt;&lt; %%%%%%% +++++++ &gt;&gt;&gt;&gt;&gt;&gt;&gt;)
+jj diff                  # Verify resolution
+# No special command needed - conflict resolved automatically</code></div>
+
+                <h4>Method 2: Using a merge tool (complex conflicts)</h4>
+                <div class="command-example"><code>jj resolve --list        # List all conflicted files
+jj resolve path/to/file  # Opens merge tool for specific file
+jj resolve               # Resolve all conflicts interactively, one by one
+# Built-in shortcuts: --tool=:ours (use our side) or --tool=:theirs (use their side)</code></div>
+
+                <h4>Method 3: View what changed during resolution</h4>
+                <div class="command-example"><code>jj interdiff --from &lt;before-resolve&gt; --to @  # See what you changed while resolving
+# Useful for reviewing your conflict resolution decisions</code></div>
+            </div>
+
+            <div class="subsection">
+                <h3>C. Advanced Features</h3>
+                <ul>
+                    <li><strong>Postpone resolution</strong>: Keep commits rebased while deferring conflict fixes</li>
+                    <li><strong>Better conflict markers</strong>: Shows "diff to apply" rather than just both sides</li>
+                    <li><strong>Descendants auto-rebase</strong>: When you resolve a conflict, descendants update automatically</li>
+                </ul>
+            </div>
+
+            <div class="subsection">
+                <h3>D. A Word of Caution</h3>
+                <p><strong>Don't postpone conflicts indefinitely!</strong></p>
+
+                <p>While jj lets you defer resolution, conflicts have real consequences:</p>
+                <ul>
+                    <li><strong>Tests may fail</strong>: Conflicted code won't compile or run correctly</li>
+                    <li><strong>Blocks collaboration</strong>: Can't share conflicted commits with teammates</li>
+                    <li><strong>Compounds over time</strong>: More rebases = more potential conflicts to untangle</li>
+                    <li><strong>Breaks local development</strong>: Your working copy may be broken until conflicts are resolved</li>
+                </ul>
+
+                <p><strong>Best practice:</strong> Postpone briefly for convenience (finish current thought, switch tasks), but resolve conflicts before:</p>
+                <ul>
+                    <li>Pushing to remote</li>
+                    <li>Asking for code review</li>
+                    <li>Switching to work on dependent changes</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="advanced" class="section section-content">
+            <h2>10. Advanced Power Features</h2>
+            <p>If you have extra time, here are some advanced features that showcase jj's power.</p>
+
+            <div class="subsection">
+                <h3>A. <code>jj absorb</code> - Automatic Fixup Distribution</h3>
+                <p>Intelligently moves changes from your working copy into the appropriate commits in your stack:</p>
+                <div class="command-example"><code># You've made fixes across multiple files that belong to different commits
+jj absorb                # Automatically distributes changes to where they belong
+# jj analyzes which commit last touched each line and moves changes there</code></div>
+                <p><strong>When to use:</strong> After making scattered fixes across a stack of commits - let jj figure out where each change belongs.</p>
+            </div>
+
+            <div class="subsection">
+                <h3>B. <code>jj diffedit</code> - Interactive Change Editing</h3>
+                <p>Edit the changes in a commit directly, like using a visual diff editor:</p>
+                <div class="command-example"><code>jj diffedit -r &lt;change-id&gt;   # Opens diff editor to modify the commit's changes
+# Add/remove hunks, modify lines - more powerful than manual editing</code></div>
+                <p><strong>When to use:</strong> Surgically edit what a commit changes without touching other commits.</p>
+            </div>
+
+            <div class="subsection">
+                <h3>C. <code>jj parallelize</code> - Restructure Commit Relationships</h3>
+                <p>Convert a linear stack into parallel siblings for independent testing:</p>
+                <div class="command-example"><code>jj parallelize &lt;revset&gt;      # Makes commits siblings instead of linear ancestors
+# Useful for testing independent features in parallel</code></div>
+                <p><strong>When to use:</strong> You have multiple independent features in a stack that don't actually depend on each other.</p>
+            </div>
+
+            <div class="subsection">
+                <h3>D. <code>jj op log</code> and <code>jj op restore</code> - Time Travel</h3>
+                <p>View and restore any previous state of your repository:</p>
+                <div class="command-example"><code>jj op log                    # See every operation you've performed
+jj op restore &lt;operation-id&gt; # Go back to any previous state
+# More powerful than undo - can restore from any point in history</code></div>
+                <p><strong>When to use:</strong> Made a complex mistake? Just restore to before you made it!</p>
+            </div>
+
+            <div class="subsection">
+                <h3>E. <code>jj duplicate</code> - Copy Commits</h3>
+                <p>Create copies of commits with the same content but different change IDs:</p>
+                <div class="command-example"><code>jj duplicate &lt;change-id&gt;           # Duplicate commit onto its current parent
+jj duplicate -d main &lt;change-id&gt;   # Duplicate commit onto a different base (main)
+# Useful for trying different approaches without losing the original</code></div>
+
+                <p><strong>When to use:</strong></p>
+                <ul>
+                    <li>Experiment with changes without losing the original</li>
+                    <li>Apply the same change to multiple branches</li>
+                    <li>Create a backup before risky operations</li>
+                </ul>
+            </div>
+
+            <div class="subsection">
+                <h3>F. <code>jj bisect</code> - Find When a Bug Was Introduced</h3>
+                <p>Automatically find which commit introduced a bug using binary search:</p>
+                <div class="command-example"><code>jj bisect run 'cargo test'         # Automatically test each commit
+# jj will binary search through history, running your test command
+# Finds the first commit where the test fails</code></div>
+                <p><strong>When to use:</strong> When you know something broke but don't know which commit caused it.</p>
+            </div>
+        </section>
+
+        <section id="wrapup" class="section section-content">
+            <h2>11. Wrap-up & Resources</h2>
+
+            <div class="subsection">
+                <h3>Key Takeaways</h3>
+                <ul>
+                    <li>Working copy is a commit; <code>jj new</code> to start fresh</li>
+                    <li>Change IDs stay stable across amendments; commit IDs change</li>
+                    <li>Immutable commits prevent rewriting shared history</li>
+                    <li>Operation log (<code>jj op log</code>) + <code>jj undo</code> = safety net</li>
+                    <li>Colocated repos let you use both jj and git</li>
+                    <li>Bookmarks track your work; use <code>jj bookmark set</code> for most cases</li>
+                    <li>Stacking changes creates better PRs</li>
+                </ul>
+            </div>
+
+            <div class="subsection">
+                <h3>Resources</h3>
+                <ul>
+                    <li><code>jj help [command]</code></li>
+                    <li><a href="https://jj-vcs.github.io/jj/latest/" target="_blank">https://jj-vcs.github.io/jj/latest/</a></li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="command-reference" class="section section-content">
+            <h2>Command Reference Table</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Description</th>
+                            <th>Example</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>jj git init</code></td>
+                            <td>Initialize colocated jj+git repo</td>
+                            <td><code>jj git init</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj git clone</code></td>
+                            <td>Clone a Git repository</td>
+                            <td><code>jj git clone https://github.com/user/repo</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj status</code></td>
+                            <td>Show working copy changes, auto-snapshots working copy</td>
+                            <td><code>jj status</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj diff</code></td>
+                            <td>Show changes in working copy commit</td>
+                            <td><code>jj diff</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj log</code></td>
+                            <td>Display commit graph with change IDs</td>
+                            <td><code>jj log</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj evolog</code></td>
+                            <td>Show evolution history of a change (how it was modified over time)</td>
+                            <td><code>jj evolog</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj interdiff</code></td>
+                            <td>Compare changes between two commits (useful for PR iterations)</td>
+                            <td><code>jj interdiff --from @-- --to @</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj new</code></td>
+                            <td>Create new empty commit on top of current, "finishing" current change</td>
+                            <td><code>jj new</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj new &lt;change-id&gt;</code></td>
+                            <td>Create new commit based on specific revision</td>
+                            <td><code>jj new main</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj describe</code></td>
+                            <td>Set or change commit message for current or specified commit</td>
+                            <td><code>jj describe -m "feat: add feature"</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj commit</code></td>
+                            <td>Shortcut: describe + new (most like git commit)</td>
+                            <td><code>jj commit -m "message"</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj commit &lt;files&gt;</code></td>
+                            <td>Commit only specific files (like split but simpler)</td>
+                            <td><code>jj commit src/*.rs -m "message"</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj metaedit</code></td>
+                            <td>Modify commit metadata (author, timestamps, change-id) without changing content</td>
+                            <td><code>jj metaedit --author "Name &lt;email&gt;"</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj edit &lt;change-id&gt;</code></td>
+                            <td>Make specified commit the working copy, allows resuming work on old commits</td>
+                            <td><code>jj edit abc123</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj prev</code></td>
+                            <td>Move to parent commit in a stack (creates new @ on parent by default)</td>
+                            <td><code>jj prev</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj next</code></td>
+                            <td>Move to child commit in a stack (creates new @ on child by default)</td>
+                            <td><code>jj next</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj prev --edit</code></td>
+                            <td>Edit parent commit directly</td>
+                            <td><code>jj prev --edit</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj squash</code></td>
+                            <td>Move changes from working copy into parent commit</td>
+                            <td><code>jj squash</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj split</code></td>
+                            <td>Split a commit into two commits interactively</td>
+                            <td><code>jj split</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj abandon</code></td>
+                            <td>Abandon current change, removing it from history</td>
+                            <td><code>jj abandon</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj rebase -d &lt;dest&gt;</code></td>
+                            <td>Rebase current change onto destination commit/bookmark</td>
+                            <td><code>jj rebase -d main</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj fix</code></td>
+                            <td>Apply configured formatters/linters to commits</td>
+                            <td><code>jj fix -s @</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj file list</code></td>
+                            <td>List tracked files in a revision</td>
+                            <td><code>jj file list</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj file show</code></td>
+                            <td>Show contents of file in a revision</td>
+                            <td><code>jj file show path/to/file -r @</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj file track</code></td>
+                            <td>Explicitly track a file</td>
+                            <td><code>jj file track .gitignore</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj file untrack</code></td>
+                            <td>Stop tracking a file</td>
+                            <td><code>jj file untrack temp.txt</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj bookmark create</code></td>
+                            <td>Create a new bookmark (fails if bookmark already exists)</td>
+                            <td><code>jj bookmark create feature-x -r @</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj bookmark set</code></td>
+                            <td>Create or update a bookmark to point to a commit (works for new and existing)</td>
+                            <td><code>jj bookmark set feature-x -r @</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj bookmark list</code></td>
+                            <td>List all local and remote bookmarks</td>
+                            <td><code>jj bookmark list</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj bookmark move</code></td>
+                            <td>Move existing bookmarks with advanced options (supports --allow-backwards, --from)</td>
+                            <td><code>jj bookmark move feature-x -r @</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj bookmark delete</code></td>
+                            <td>Delete a local bookmark</td>
+                            <td><code>jj bookmark delete old-feature</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj bookmark track</code></td>
+                            <td>Start tracking &lt;branch&gt;@&lt;remote&gt; with a bookmark</td>
+                            <td><code>jj bookmark track feature-x@origin</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj tag list</code></td>
+                            <td>List all tags</td>
+                            <td><code>jj tag list</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj git fetch</code></td>
+                            <td>Fetch changes from Git remote</td>
+                            <td><code>jj git fetch</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj git push</code></td>
+                            <td>Push bookmarks to Git remote (checks remote state, safe by default)</td>
+                            <td><code>jj git push --bookmark feature-x</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj git push --allow-new</code></td>
+                            <td>Push new bookmark to remote for first time (required for new bookmarks)</td>
+                            <td><code>jj git push --bookmark feature-x --allow-new</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj git push --change</code></td>
+                            <td>Push single change with auto-generated bookmark</td>
+                            <td><code>jj git push --change @ --allow-new</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj op log</code></td>
+                            <td>Show operation log (history of jj commands run)</td>
+                            <td><code>jj op log</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj op restore</code></td>
+                            <td>Restore repository to a previous operation state</td>
+                            <td><code>jj op restore &lt;operation-id&gt;</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj undo</code></td>
+                            <td>Undo the last operation</td>
+                            <td><code>jj undo</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj redo</code></td>
+                            <td>Redo an operation (after using undo)</td>
+                            <td><code>jj redo</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj resolve</code></td>
+                            <td>Resolve conflicts using a merge tool</td>
+                            <td><code>jj resolve</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj resolve --list</code></td>
+                            <td>List all conflicted files</td>
+                            <td><code>jj resolve --list</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj absorb</code></td>
+                            <td>Automatically distribute working copy changes to appropriate commits in stack</td>
+                            <td><code>jj absorb</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj diffedit</code></td>
+                            <td>Interactively edit changes in a commit using a diff editor</td>
+                            <td><code>jj diffedit -r &lt;change-id&gt;</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj parallelize</code></td>
+                            <td>Convert linear commits to parallel siblings</td>
+                            <td><code>jj parallelize &lt;revset&gt;</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj duplicate</code></td>
+                            <td>Create a copy of a commit with the same content</td>
+                            <td><code>jj duplicate &lt;change-id&gt;</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj bisect</code></td>
+                            <td>Find which commit introduced a bug using binary search</td>
+                            <td><code>jj bisect run 'cargo test'</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj config set --user</code></td>
+                            <td>Set user-level configuration</td>
+                            <td><code>jj config set --user signing.backend "gpg"</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>jj sign</code></td>
+                            <td>Manually sign commits</td>
+                            <td><code>jj sign</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <div class="section" style="text-align: center; margin-top: 50px; padding-top: 30px; border-top: 2px solid #e0e0e0;">
+            <p style="margin-bottom: 20px;">
+                <a href="tests/index.html" class="button">Test Your Knowledge</a>
+            </p>
+            <p style="color: #888; font-size: 14px;">
+                <a href="tests/cheatsheet.html" style="color: #667eea;">Command Cheatsheet</a>
+                ·
+                <a href="index.html" style="color: #667eea;">Back to Home</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

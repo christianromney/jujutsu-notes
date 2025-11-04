@@ -1,0 +1,440 @@
+/* Shared styles for Jujutsu VCS tutorial site */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+.container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 1200px;
+    width: 100%;
+    padding: 40px;
+    animation: fadeInScale 0.5s ease-out;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Typography */
+h1 {
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 28px;
+}
+
+h2 {
+    color: #333;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    font-size: 24px;
+}
+
+h3 {
+    color: #667eea;
+    margin-top: 20px;
+    margin-bottom: 12px;
+    font-size: 20px;
+}
+
+h4 {
+    color: #555;
+    margin-top: 15px;
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+p {
+    color: #555;
+    margin-bottom: 15px;
+}
+
+.subtitle {
+    color: #666;
+    margin-bottom: 30px;
+    font-size: 14px;
+}
+
+/* Links */
+a {
+    color: #667eea;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: #764ba2;
+}
+
+/* Buttons */
+button, .button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+}
+
+button::before, .button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+}
+
+button:hover::before, .button:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+button:hover, .button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+button:active, .button:active {
+    transform: translateY(0);
+}
+
+button.secondary {
+    background: #e0e0e0;
+    color: #333;
+}
+
+button.secondary:hover {
+    background: #d0d0d0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Cards */
+.card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 32px;
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(102, 126, 234, 0.2);
+    border-color: #667eea;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.card-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+}
+
+.card-description {
+    color: #666;
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+.card-meta {
+    display: flex;
+    gap: 20px;
+    font-size: 14px;
+    color: #888;
+}
+
+.card-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.card-meta-item::before {
+    content: "•";
+    color: #667eea;
+    font-weight: 700;
+}
+
+/* Grid Layouts */
+.grid {
+    display: grid;
+    gap: 24px;
+    margin-top: 40px;
+}
+
+.two-column-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+}
+
+@media (max-width: 900px) {
+    .two-column-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Code blocks */
+code {
+    background: #f5f5f5;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+    font-size: 14px;
+    color: #e91e63;
+}
+
+pre {
+    background: #f5f5f5;
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 15px 0;
+    border-left: 4px solid #667eea;
+}
+
+pre code {
+    background: none;
+    padding: 0;
+    color: #333;
+}
+
+/* Lists */
+ul, ol {
+    margin: 15px 0 15px 30px;
+    color: #555;
+}
+
+li {
+    margin-bottom: 8px;
+}
+
+/* Info boxes */
+.info-box {
+    background: linear-gradient(135deg, #e8eaf6 0%, #f3e5f5 100%);
+    border-left: 4px solid #667eea;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.info-box h3 {
+    color: #667eea;
+    font-size: 18px;
+    margin-top: 0;
+    margin-bottom: 12px;
+}
+
+.info-box p {
+    color: #555;
+    font-size: 15px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.info-box ul {
+    margin: 12px 0 0 20px;
+    color: #555;
+    font-size: 15px;
+    line-height: 1.8;
+}
+
+/* Warning/Note boxes */
+.warning-box {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    border-left: 4px solid #ff9800;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.warning-box h3 {
+    color: #ff9800;
+    margin-top: 0;
+}
+
+/* Section styling */
+.section {
+    margin-top: 40px;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.section:first-child {
+    margin-top: 0;
+}
+
+/* Table of contents */
+.toc {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 24px;
+    margin: 30px 0;
+}
+
+.toc h2 {
+    margin-top: 0;
+    font-size: 20px;
+    color: #667eea;
+}
+
+.toc ul {
+    margin: 15px 0 0 20px;
+}
+
+.toc li {
+    margin-bottom: 10px;
+}
+
+.toc a {
+    color: #555;
+    font-weight: 500;
+}
+
+.toc a:hover {
+    color: #667eea;
+}
+
+/* Page header */
+.page-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.page-title {
+    font-size: 36px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 12px;
+}
+
+.page-subtitle {
+    font-size: 18px;
+    color: #666;
+    line-height: 1.6;
+}
+
+/* Navigation */
+.navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+    gap: 12px;
+}
+
+/* Back link */
+.back-link {
+    display: inline-block;
+    margin-bottom: 20px;
+    color: #667eea;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.back-link:hover {
+    color: #764ba2;
+}
+
+.back-link::before {
+    content: "← ";
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container {
+        padding: 24px;
+    }
+
+    h1 {
+        font-size: 24px;
+    }
+
+    h2 {
+        font-size: 20px;
+    }
+
+    .page-title {
+        font-size: 28px;
+    }
+
+    .card {
+        padding: 20px;
+    }
+}
