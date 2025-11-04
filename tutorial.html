@@ -122,12 +122,77 @@
             margin: 10px 0 0 20px;
         }
 
-        /* Sticky TOC */
-        .toc {
+        /* Tutorial layout with sidebar */
+        .tutorial-layout {
+            display: flex;
+            gap: 40px;
+            align-items: flex-start;
+        }
+
+        .tutorial-sidebar {
+            width: 250px;
+            flex-shrink: 0;
             position: sticky;
             top: 20px;
-            z-index: 100;
+            align-self: flex-start;
+        }
+
+        .tutorial-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* TOC in sidebar */
+        .toc {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
             transition: box-shadow 0.3s ease;
+        }
+
+        .toc h2 {
+            font-size: 18px;
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .toc ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .toc li {
+            margin-bottom: 10px;
+        }
+
+        .toc a {
+            color: #555;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            display: block;
+            padding: 6px 10px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .toc a:hover {
+            background: #e8eaf6;
+            color: #667eea;
+            transform: translateX(4px);
+        }
+
+        /* Responsive: hide sidebar on smaller screens */
+        @media (max-width: 1024px) {
+            .tutorial-sidebar {
+                display: none;
+            }
+
+            .tutorial-layout {
+                display: block;
+            }
         }
 
         /* Scroll progress bar */
@@ -213,24 +278,28 @@
             </ul>
         </div>
 
-        <div class="toc">
-            <h2>Table of Contents</h2>
-            <ul>
-                <li><a href="#setup">1. Setup & Installation</a></li>
-                <li><a href="#core-concepts">2. Core Concepts & Daily Workflow</a></li>
-                <li><a href="#history-editing">3. History Editing & Rebasing</a></li>
-                <li><a href="#bookmarks">4. Working with Bookmarks</a></li>
-                <li><a href="#remotes">5. Syncing with Remotes</a></li>
-                <li><a href="#stacked-changes">6. Stacked Changes / PR Workflow</a></li>
-                <li><a href="#revsets">7. Understanding Revsets</a></li>
-                <li><a href="#immutable">8. Immutable Commits & Safe History</a></li>
-                <li><a href="#conflicts">9. Conflict Resolution</a></li>
-                <li><a href="#advanced">10. Advanced Power Features</a></li>
-                <li><a href="#wrapup">11. Wrap-up & Resources</a></li>
-            </ul>
-        </div>
+        <div class="tutorial-layout">
+            <aside class="tutorial-sidebar">
+                <div class="toc">
+                    <h2>Table of Contents</h2>
+                    <ul>
+                        <li><a href="#setup">1. Setup & Installation</a></li>
+                        <li><a href="#core-concepts">2. Core Concepts & Daily Workflow</a></li>
+                        <li><a href="#history-editing">3. History Editing & Rebasing</a></li>
+                        <li><a href="#bookmarks">4. Working with Bookmarks</a></li>
+                        <li><a href="#remotes">5. Syncing with Remotes</a></li>
+                        <li><a href="#stacked-changes">6. Stacked Changes / PR Workflow</a></li>
+                        <li><a href="#revsets">7. Understanding Revsets</a></li>
+                        <li><a href="#immutable">8. Immutable Commits & Safe History</a></li>
+                        <li><a href="#conflicts">9. Conflict Resolution</a></li>
+                        <li><a href="#advanced">10. Advanced Power Features</a></li>
+                        <li><a href="#wrapup">11. Wrap-up & Resources</a></li>
+                    </ul>
+                </div>
+            </aside>
 
-        <section id="setup" class="section section-content">
+            <div class="tutorial-content">
+                <section id="setup" class="section section-content">
             <h2>1. Setup & Installation</h2>
             <p>Let's get jj installed and configured. The setup process will feel familiar if you've used Git before.</p>
 
@@ -1148,17 +1217,19 @@ jj duplicate -d main &lt;change-id&gt;   # Duplicate commit onto a different bas
             </div>
         </section>
 
-        <div class="section" style="text-align: center; margin-top: 50px; padding-top: 30px; border-top: 2px solid #e0e0e0;">
-            <p style="margin-bottom: 20px;">
-                <a href="tests/index.html" class="button">Test Your Knowledge</a>
-            </p>
-            <p style="color: #888; font-size: 14px;">
-                <a href="tests/cheatsheet.html" style="color: #667eea;">Command Cheatsheet</a>
-                ·
-                <a href="index.html" style="color: #667eea;">Back to Home</a>
-            </p>
-        </div>
-    </div>
+                <div class="section" style="text-align: center; margin-top: 50px; padding-top: 30px; border-top: 2px solid #e0e0e0;">
+                    <p style="margin-bottom: 20px;">
+                        <a href="tests/index.html" class="button">Test Your Knowledge</a>
+                    </p>
+                    <p style="color: #888; font-size: 14px;">
+                        <a href="tests/cheatsheet.html" style="color: #667eea;">Command Cheatsheet</a>
+                        ·
+                        <a href="index.html" style="color: #667eea;">Back to Home</a>
+                    </p>
+                </div>
+            </div><!-- .tutorial-content -->
+        </div><!-- .tutorial-layout -->
+    </div><!-- .container -->
 
     <!-- Scroll progress bar -->
     <div class="scroll-progress">
