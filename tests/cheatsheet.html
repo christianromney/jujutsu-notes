@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jujutsu (jj) Command Cheatsheet</title>
+    <link rel="stylesheet" href="quiz.css">
+    <style>
+        .cheatsheet-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            font-size: 24px;
+            color: #667eea;
+            margin-top: 40px;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        h3 {
+            font-size: 18px;
+            color: #555;
+            margin-top: 24px;
+            margin-bottom: 12px;
+        }
+
+        .command-block {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+            padding: 16px;
+            margin-bottom: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.8;
+            overflow-x: auto;
+        }
+
+        .command-line {
+            margin: 4px 0;
+            color: #333;
+        }
+
+        .comment {
+            color: #888;
+        }
+
+        .concept-list {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px 20px 20px 40px;
+            margin-bottom: 20px;
+        }
+
+        .concept-list li {
+            margin: 12px 0;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .concept-list strong {
+            color: #667eea;
+        }
+
+        .workflow-example {
+            background: linear-gradient(135deg, #e8eaf6 0%, #f3e5f5 100%);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .workflow-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .resources {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 40px;
+        }
+
+        .resources a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .resources a:hover {
+            text-decoration: underline;
+        }
+
+        code {
+            background: #e8eaf6;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container cheatsheet-container">
+        <a href="index.html" class="back-link">← Back to Tests</a>
+
+        <h1>Jujutsu (jj) Command Cheatsheet</h1>
+        <p class="subtitle">Quick reference for common Jujutsu commands</p>
+
+        <h2>Key Concepts</h2>
+        <ul class="concept-list">
+            <li><strong>Working copy is a commit</strong> (<code>@</code>) - no staging area</li>
+            <li><strong>Change ID</strong> - stable identifier across amendments</li>
+            <li><strong>Commit ID</strong> - identifies specific snapshot (changes on amend)</li>
+            <li><strong>Bookmarks</strong> - like Git branches but auto-move during rebasing</li>
+            <li><strong>Immutable commits</strong> - trunk(), tags(), and pushed commits are protected</li>
+            <li><strong>Co-located repos</strong> - both .jj and .git directories, stay synced</li>
+        </ul>
+
+        <h2>Setup & Configuration</h2>
+        <div class="command-block">
+            <div class="command-line">brew install jujutsu <span class="comment"># Install on macOS</span></div>
+            <div class="command-line">jj config set --user user.name "Your Name"</div>
+            <div class="command-line">jj config set --user user.email "you@example.com"</div>
+            <div class="command-line">jj git init --colocate <span class="comment"># Initialize in existing Git repo</span></div>
+            <div class="command-line">jj git clone &lt;url&gt; <span class="comment"># Clone a repository</span></div>
+        </div>
+
+        <h2>Viewing State</h2>
+        <div class="command-block">
+            <div class="command-line">jj status <span class="comment"># Show working copy changes</span></div>
+            <div class="command-line">jj diff <span class="comment"># Show changes in current commit</span></div>
+            <div class="command-line">jj log <span class="comment"># Show commit graph with change IDs</span></div>
+            <div class="command-line">jj log -r &lt;revset&gt; <span class="comment"># Show specific commits</span></div>
+            <div class="command-line">jj evolog <span class="comment"># Show how a change evolved over time</span></div>
+        </div>
+
+        <h2>Creating & Navigating Changes</h2>
+        <div class="command-block">
+            <div class="command-line">jj new <span class="comment"># Finish current commit, start new one</span></div>
+            <div class="command-line">jj new -m "message" <span class="comment"># Create new commit with message</span></div>
+            <div class="command-line">jj commit -m "message" <span class="comment"># Describe current + new (like git commit)</span></div>
+            <div class="command-line">jj describe -m "message" <span class="comment"># Set/update commit message</span></div>
+            <div class="command-line"></div>
+            <div class="command-line">jj edit &lt;change-id&gt; <span class="comment"># Switch to editing a different commit</span></div>
+            <div class="command-line">jj prev <span class="comment"># Move to parent commit</span></div>
+            <div class="command-line">jj next <span class="comment"># Move to child commit</span></div>
+            <div class="command-line">jj prev --edit <span class="comment"># Edit parent directly</span></div>
+        </div>
+
+        <h2>History Editing</h2>
+        <div class="command-block">
+            <div class="command-line">jj squash <span class="comment"># Squash @ into parent</span></div>
+            <div class="command-line">jj squash --into &lt;dest&gt; <span class="comment"># Squash @ into specific commit</span></div>
+            <div class="command-line">jj squash -r &lt;src&gt; --into &lt;dest&gt; <span class="comment"># Squash one commit into another</span></div>
+            <div class="command-line"></div>
+            <div class="command-line">jj split <span class="comment"># Split current commit into two</span></div>
+            <div class="command-line">jj rebase -d &lt;dest&gt; <span class="comment"># Rebase onto destination</span></div>
+            <div class="command-line">jj abandon <span class="comment"># Discard current change</span></div>
+            <div class="command-line">jj fix <span class="comment"># Apply formatters/linters</span></div>
+        </div>
+
+        <h2>Working with Files</h2>
+        <div class="command-block">
+            <div class="command-line">jj file list <span class="comment"># List tracked files</span></div>
+            <div class="command-line">jj file show &lt;path&gt; <span class="comment"># Show file contents</span></div>
+            <div class="command-line">jj file show &lt;path&gt; -r &lt;rev&gt; <span class="comment"># Show file at specific revision</span></div>
+            <div class="command-line">jj file track &lt;path&gt; <span class="comment"># Explicitly track file</span></div>
+            <div class="command-line">jj file untrack &lt;path&gt; <span class="comment"># Stop tracking file</span></div>
+        </div>
+
+        <h2>Bookmarks (Branches)</h2>
+        <div class="command-block">
+            <div class="command-line">jj bookmark list <span class="comment"># List all bookmarks</span></div>
+            <div class="command-line">jj bookmark set &lt;name&gt; -r @ <span class="comment"># Create or update bookmark (most common)</span></div>
+            <div class="command-line">jj bookmark create &lt;name&gt; <span class="comment"># Create new bookmark (fails if exists)</span></div>
+            <div class="command-line">jj bookmark move &lt;name&gt; -r &lt;rev&gt; <span class="comment"># Move bookmark</span></div>
+            <div class="command-line">jj bookmark delete &lt;name&gt; <span class="comment"># Delete bookmark</span></div>
+            <div class="command-line">jj bookmark track &lt;name&gt;@&lt;remote&gt; <span class="comment"># Track remote bookmark</span></div>
+        </div>
+
+        <h2>Syncing with Remotes</h2>
+        <div class="command-block">
+            <div class="command-line">jj git fetch <span class="comment"># Fetch from remote</span></div>
+            <div class="command-line">jj git push --bookmark &lt;name&gt; <span class="comment"># Push bookmark</span></div>
+            <div class="command-line">jj git push --bookmark &lt;name&gt; --allow-new <span class="comment"># Push new bookmark (first time)</span></div>
+            <div class="command-line">jj git push --change @ <span class="comment"># Push with auto-generated bookmark</span></div>
+        </div>
+
+        <h2>Conflict Resolution</h2>
+        <div class="command-block">
+            <div class="command-line">jj status <span class="comment"># Shows conflicted files</span></div>
+            <div class="command-line"><span class="comment"># Edit files manually to resolve, or:</span></div>
+            <div class="command-line">jj resolve <span class="comment"># Resolve all conflicts interactively</span></div>
+            <div class="command-line">jj resolve &lt;path&gt; <span class="comment"># Resolve specific file</span></div>
+            <div class="command-line">jj resolve --list <span class="comment"># List conflicted files</span></div>
+            <div class="command-line">jj resolve --tool=:ours <span class="comment"># Use our side</span></div>
+            <div class="command-line">jj resolve --tool=:theirs <span class="comment"># Use their side</span></div>
+        </div>
+
+        <h2>Comparing Changes</h2>
+        <div class="command-block">
+            <div class="command-line">jj diff <span class="comment"># Show changes in @</span></div>
+            <div class="command-line">jj diff -r &lt;rev&gt; <span class="comment"># Show changes in specific commit</span></div>
+            <div class="command-line">jj interdiff --from &lt;a&gt; --to &lt;b&gt; <span class="comment"># Compare two versions</span></div>
+            <div class="command-line">jj evolog -p <span class="comment"># Show evolution with diffs</span></div>
+        </div>
+
+        <h2>Safety & Undo</h2>
+        <div class="command-block">
+            <div class="command-line">jj undo <span class="comment"># Undo last operation</span></div>
+            <div class="command-line">jj redo <span class="comment"># Redo after undo</span></div>
+            <div class="command-line">jj op log <span class="comment"># Show operation history</span></div>
+            <div class="command-line">jj op restore &lt;id&gt; <span class="comment"># Restore to specific operation</span></div>
+        </div>
+
+        <h2>Advanced Commands</h2>
+        <div class="command-block">
+            <div class="command-line">jj absorb <span class="comment"># Auto-distribute changes to appropriate commits</span></div>
+            <div class="command-line">jj diffedit -r &lt;rev&gt; <span class="comment"># Interactively edit commit's changes</span></div>
+            <div class="command-line">jj parallelize &lt;revset&gt; <span class="comment"># Convert linear stack to parallel</span></div>
+            <div class="command-line">jj duplicate &lt;change-id&gt; <span class="comment"># Copy commit</span></div>
+            <div class="command-line">jj bisect run '&lt;command&gt;' <span class="comment"># Find bug-introducing commit</span></div>
+            <div class="command-line">jj metaedit <span class="comment"># Modify commit metadata</span></div>
+        </div>
+
+        <h2>Common Revsets</h2>
+        <div class="command-block">
+            <div class="command-line">@ <span class="comment"># Current working copy</span></div>
+            <div class="command-line">@- <span class="comment"># Parent of working copy</span></div>
+            <div class="command-line">main <span class="comment"># Bookmark/branch named "main"</span></div>
+            <div class="command-line">main@origin <span class="comment"># Remote bookmark</span></div>
+            <div class="command-line">main..@ <span class="comment"># Commits between main and @</span></div>
+            <div class="command-line">trunk() <span class="comment"># Main development branches</span></div>
+            <div class="command-line">tags() <span class="comment"># All tags</span></div>
+            <div class="command-line">bookmarks() <span class="comment"># All local bookmarks</span></div>
+        </div>
+
+        <h2>Quick Workflow Examples</h2>
+
+        <div class="workflow-example">
+            <div class="workflow-title">Starting new work:</div>
+            <div class="command-block" style="margin: 0;">
+                <div class="command-line">jj new main <span class="comment"># Start from main</span></div>
+                <div class="command-line"><span class="comment"># Make changes...</span></div>
+                <div class="command-line">jj commit -m "Add feature" <span class="comment"># Finish and describe</span></div>
+            </div>
+        </div>
+
+        <div class="workflow-example">
+            <div class="workflow-title">Fixing earlier commit:</div>
+            <div class="command-block" style="margin: 0;">
+                <div class="command-line">jj edit &lt;change-id&gt; <span class="comment"># Switch to that commit</span></div>
+                <div class="command-line"><span class="comment"># Make fixes...</span></div>
+                <div class="command-line">jj new <span class="comment"># Descendants auto-rebase!</span></div>
+            </div>
+        </div>
+
+        <div class="workflow-example">
+            <div class="workflow-title">Stacked PRs:</div>
+            <div class="command-block" style="margin: 0;">
+                <div class="command-line">jj new main</div>
+                <div class="command-line"><span class="comment"># Work on part 1...</span></div>
+                <div class="command-line">jj new <span class="comment"># Start part 2</span></div>
+                <div class="command-line"><span class="comment"># Work on part 2...</span></div>
+                <div class="command-line">jj bookmark set part1 -r @-</div>
+                <div class="command-line">jj bookmark set part2 -r @</div>
+                <div class="command-line">jj git push --bookmark part1 --allow-new</div>
+                <div class="command-line">jj git push --bookmark part2 --allow-new</div>
+            </div>
+        </div>
+
+        <div class="resources">
+            <h2 style="margin-top: 0;">Resources</h2>
+            <ul style="margin: 12px 0 0 20px; line-height: 1.8;">
+                <li><code>jj help [command]</code> - Built-in help</li>
+                <li><a href="https://jj-vcs.github.io/jj/latest/" target="_blank">https://jj-vcs.github.io/jj/latest/</a> - Official documentation</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

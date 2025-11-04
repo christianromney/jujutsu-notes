@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jujutsu VCS Advanced Test</title>
+    <link rel="stylesheet" href="quiz.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Jujutsu VCS Advanced Test</h1>
+        <p class="subtitle">Test your knowledge of advanced Jujutsu features and workflows</p>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div id="questionsContainer"></div>
+
+        <div class="results" id="results">
+            <div class="score" id="score"></div>
+            <div class="score-message" id="scoreMessage"></div>
+            <div style="display: flex; gap: 12px; justify-content: center; margin-top: 20px; flex-wrap: wrap;">
+                <button onclick="restartQuiz()" class="restart-button">Re-test This Level</button>
+                <button onclick="window.location.href='index.html'" class="restart-button secondary">Back to Tests</button>
+            </div>
+            <div class="answer-review" id="answerReview"></div>
+        </div>
+
+        <div class="navigation" id="navigation">
+            <button onclick="previousQuestion()" id="prevBtn" class="secondary">Previous</button>
+            <button onclick="nextQuestion()" id="nextBtn">Next</button>
+        </div>
+    </div>
+
+    <script>
+        // Question Bank - 30 questions organized by category
+        const questionBank = [
+            // ===== CATEGORY: Power Features (8 questions) =====
+            {
+                category: "power-features",
+                question: "What does 'jj absorb' do?",
+                options: [
+                    "Combines all commits into one",
+                    "Intelligently distributes working copy changes to the commits that last touched each line",
+                    "Deletes empty commits from history",
+                    "Imports changes from a Git repository"
+                ],
+                correct: 1
+            },
+            {
+                category: "power-features",
+                question: "What is 'jj diffedit' used for?",
+                options: [
+                    "Editing commit messages",
+                    "Resolving conflicts",
+                    "Interactively editing the changes in a commit using a diff editor",
+                    "Comparing two files"
+                ],
+                correct: 2
+            },
+            {
+                category: "power-features",
+                question: "What does 'jj parallelize <revset>' do?",
+                options: [
+                    "Speeds up jj operations by using multiple threads",
+                    "Converts a linear stack of commits into parallel siblings",
+                    "Runs multiple commands simultaneously",
+                    "Creates parallel branches"
+                ],
+                correct: 1
+            },
+            {
+                category: "power-features",
+                question: "What does 'jj duplicate <change-id>' do?",
+                options: [
+                    "Creates a backup of the repository",
+                    "Creates a copy of a commit with the same content but different change ID",
+                    "Duplicates a file in the working copy",
+                    "Creates a new branch"
+                ],
+                correct: 1
+            },
+            {
+                category: "power-features",
+                question: "What does 'jj bisect run <command>' do?",
+                options: [
+                    "Runs a command on all commits",
+                    "Binary searches through history to find which commit introduced a bug",
+                    "Splits a commit based on the command output",
+                    "Runs two commands in parallel"
+                ],
+                correct: 1
+            },
+            {
+                category: "power-features",
+                question: "When would you use 'jj duplicate' instead of 'jj new'?",
+                options: [
+                    "When you want to create an empty commit",
+                    "When you want to experiment with changes without losing the original",
+                    "When you want to create a bookmark",
+                    "When you want to merge commits"
+                ],
+                correct: 1
+            },
+            {
+                category: "power-features",
+                question: "What does 'jj fix' do?",
+                options: [
+                    "Fixes merge conflicts",
+                    "Applies configured formatters/linters to commits",
+                    "Repairs corrupted repository",
+                    "Fixes commit messages"
+                ],
+                correct: 1
+            },
+            {
+                category: "power-features",
+                question: "Can 'jj absorb' distribute changes to immutable commits?",
+                options: [
+                    "Yes, to all commits",
+                    "No, only to mutable commits",
+                    "Yes, but requires --force",
+                    "Yes, but only to trunk commits"
+                ],
+                correct: 1
+            },
+
+            // ===== CATEGORY: Operations and Time Travel (8 questions) =====
+            {
+                category: "operations",
+                question: "What is the purpose of 'jj op log'?",
+                options: [
+                    "Shows all commits in the repository",
+                    "Displays operation history of all jj commands run",
+                    "Lists all open operations",
+                    "Shows the Git log"
+                ],
+                correct: 1
+            },
+            {
+                category: "operations",
+                question: "What does 'jj op restore <operation-id>' do?",
+                options: [
+                    "Restores deleted files",
+                    "Undoes the last operation only",
+                    "Restores the repository to any previous operation state",
+                    "Creates a backup of the current state"
+                ],
+                correct: 2
+            },
+            {
+                category: "operations",
+                question: "How is 'jj op restore' different from 'jj undo'?",
+                options: [
+                    "There is no difference",
+                    "op restore can go back to any point, undo only reverses the last operation",
+                    "op restore is faster",
+                    "undo is more powerful"
+                ],
+                correct: 1
+            },
+            {
+                category: "operations",
+                question: "What does 'jj evolog' show?",
+                options: [
+                    "All commits in chronological order",
+                    "The evolution history showing how a change was modified over time",
+                    "Error logs from jj operations",
+                    "Event logs from the operating system"
+                ],
+                correct: 1
+            },
+            {
+                category: "operations",
+                question: "Can you undo an 'jj op restore'?",
+                options: [
+                    "No, it's permanent",
+                    "Yes, using 'jj undo' or another 'jj op restore'",
+                    "Yes, but only within 24 hours",
+                    "No, unless you have a backup"
+                ],
+                correct: 1
+            },
+            {
+                category: "operations",
+                question: "What happens to the operation log when you run 'jj undo'?",
+                options: [
+                    "The last operation is removed",
+                    "A new 'undo' operation is added to the log",
+                    "The log is cleared",
+                    "Nothing, it's read-only"
+                ],
+                correct: 1
+            },
+            {
+                category: "operations",
+                question: "How far back does the operation log go?",
+                options: [
+                    "Only the current session",
+                    "Last 7 days by default",
+                    "All operations since repository creation",
+                    "Last 100 operations"
+                ],
+                correct: 2
+            },
+            {
+                category: "operations",
+                question: "What does 'jj evolog -p' show?",
+                options: [
+                    "Evolution log with patches (diffs)",
+                    "Evolution log with permissions",
+                    "Evolution log with parent commits",
+                    "Evolution log with performance metrics"
+                ],
+                correct: 0
+            },
+
+            // ===== CATEGORY: Revsets and Queries (7 questions) =====
+            {
+                category: "revsets",
+                question: "What is the revset function 'trunk()' used for?",
+                options: [
+                    "Shows all commits in the main branch",
+                    "Identifies main development branches (main, master, trunk) that are immutable",
+                    "Shows the root commit of the repository",
+                    "Lists all branches"
+                ],
+                correct: 1
+            },
+            {
+                category: "revsets",
+                question: "What does 'jj interdiff --from <rev1> --to <rev2>' show?",
+                options: [
+                    "All changes between two revisions",
+                    "What changed between two versions of the same logical change",
+                    "Conflicts between two commits",
+                    "Common changes in both commits"
+                ],
+                correct: 1
+            },
+            {
+                category: "revsets",
+                question: "What does the revset 'main..@' select?",
+                options: [
+                    "All commits",
+                    "Commits between main and the working copy",
+                    "Only the main branch",
+                    "Only the working copy"
+                ],
+                correct: 1
+            },
+            {
+                category: "revsets",
+                question: "What does the revset function 'author(alice)' match?",
+                options: [
+                    "Commits where alice is mentioned",
+                    "Commits authored by alice",
+                    "Commits reviewed by alice",
+                    "Commits assigned to alice"
+                ],
+                correct: 1
+            },
+            {
+                category: "revsets",
+                question: "Can you use revsets in 'jj log' to filter commits?",
+                options: [
+                    "No, revsets are only for rebasing",
+                    "Yes, using 'jj log -r <revset>'",
+                    "Yes, but only for simple queries",
+                    "No, you must use separate filter commands"
+                ],
+                correct: 1
+            },
+            {
+                category: "revsets",
+                question: "What does 'remote_bookmarks()' select?",
+                options: [
+                    "Only tracked remote bookmarks",
+                    "All bookmarks on remote servers",
+                    "Bookmarks that have been pushed",
+                    "Remote branches in Git"
+                ],
+                correct: 1
+            },
+            {
+                category: "revsets",
+                question: "What is the purpose of 'jj interdiff'?",
+                options: [
+                    "To compare any two commits",
+                    "To see what changed between two versions of the same logical change (e.g., after addressing PR feedback)",
+                    "To resolve conflicts",
+                    "To merge branches"
+                ],
+                correct: 1
+            },
+
+            // ===== CATEGORY: Advanced Workflows (7 questions) =====
+            {
+                category: "workflows",
+                question: "What is the main benefit of stacking changes in jj?",
+                options: [
+                    "It reduces repository size",
+                    "It allows breaking large features into small, reviewable PRs",
+                    "It automatically merges changes",
+                    "It prevents conflicts"
+                ],
+                correct: 1
+            },
+            {
+                category: "workflows",
+                question: "When working with stacked PRs, what happens when you edit an earlier change in the stack?",
+                options: [
+                    "All descendant PRs must be manually updated",
+                    "The stack is broken",
+                    "Descendants automatically rebase on the changes",
+                    "You must abandon the stack"
+                ],
+                correct: 2
+            },
+            {
+                category: "workflows",
+                question: "What does 'jj bookmark track <name>@<remote>' enable?",
+                options: [
+                    "Automatic local bookmark creation/updates on fetch",
+                    "Automatic pushes to remote",
+                    "Read-only access to the bookmark",
+                    "Conflict detection"
+                ],
+                correct: 0
+            },
+            {
+                category: "workflows",
+                question: "What is a common use case for 'jj metaedit'?",
+                options: [
+                    "Editing file contents",
+                    "Modifying commit metadata (author, timestamp, change-id) without changing content",
+                    "Editing commit messages",
+                    "Editing branch names"
+                ],
+                correct: 1
+            },
+            {
+                category: "workflows",
+                question: "When should you use 'jj split' in your workflow?",
+                options: [
+                    "When you want to delete half of a commit",
+                    "When a commit is too large and should be broken into smaller, focused commits",
+                    "When you want to create a backup",
+                    "When resolving conflicts"
+                ],
+                correct: 1
+            },
+            {
+                category: "workflows",
+                question: "What is the advantage of bookmark tracking?",
+                options: [
+                    "It makes pushes faster",
+                    "It automatically creates local bookmarks that stay in sync with remote on fetch",
+                    "It prevents conflicts",
+                    "It enables force pushing"
+                ],
+                correct: 1
+            },
+            {
+                category: "workflows",
+                question: "How can you view what changed in a file across different revisions?",
+                options: [
+                    "jj file diff <path>",
+                    "jj file show <path> -r <rev1> and jj file show <path> -r <rev2>",
+                    "jj compare <rev1> <rev2> <path>",
+                    "jj file history <path>"
+                ],
+                correct: 1
+            }
+        ];
+    </script>
+    <script src="quiz.js"></script>
+</body>
+</html>

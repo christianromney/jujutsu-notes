@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jujutsu VCS Intermediate Test</title>
+    <link rel="stylesheet" href="quiz.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Jujutsu VCS Intermediate Test</h1>
+        <p class="subtitle">Test your knowledge of advanced Jujutsu concepts</p>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div id="questionsContainer"></div>
+
+        <div class="results" id="results">
+            <div class="score" id="score"></div>
+            <div class="score-message" id="scoreMessage"></div>
+            <div style="display: flex; gap: 12px; justify-content: center; margin-top: 20px; flex-wrap: wrap;">
+                <button onclick="restartQuiz()" class="restart-button">Re-test This Level</button>
+                <button onclick="window.location.href='03-advanced.html'" class="restart-button">Try the Next Level</button>
+                <button onclick="window.location.href='index.html'" class="restart-button secondary">Back to Tests</button>
+            </div>
+            <div class="answer-review" id="answerReview"></div>
+        </div>
+
+        <div class="navigation" id="navigation">
+            <button onclick="previousQuestion()" id="prevBtn" class="secondary">Previous</button>
+            <button onclick="nextQuestion()" id="nextBtn">Next</button>
+        </div>
+    </div>
+
+    <script>
+        // Question Bank - 30 questions organized by category
+        const questionBank = [
+            // ===== CATEGORY: History Editing (8 questions) =====
+            {
+                category: "history-editing",
+                question: "What is the purpose of the 'jj squash' command?",
+                options: [
+                    "To compress the repository size",
+                    "To combine the current commit into its parent commit",
+                    "To delete all empty commits",
+                    "To merge two branches together"
+                ],
+                correct: 1
+            },
+            {
+                category: "history-editing",
+                question: "What happens to descendant commits when you edit an earlier commit with 'jj edit'?",
+                options: [
+                    "They are deleted",
+                    "They remain unchanged",
+                    "They automatically rebase on top of your changes",
+                    "You must manually rebase them"
+                ],
+                correct: 2
+            },
+            {
+                category: "history-editing",
+                question: "What does 'jj split' do?",
+                options: [
+                    "Divides the repository into two parts",
+                    "Creates a new branch",
+                    "Interactively splits a commit into two separate commits",
+                    "Separates conflicted files"
+                ],
+                correct: 2
+            },
+            {
+                category: "history-editing",
+                question: "What does 'jj abandon' do?",
+                options: [
+                    "Deletes the repository",
+                    "Discards a change while preserving descendants by rebasing them",
+                    "Abandons all uncommitted changes",
+                    "Stops tracking a file"
+                ],
+                correct: 1
+            },
+            {
+                category: "history-editing",
+                question: "Can you squash a commit that is not the working copy?",
+                options: [
+                    "No, only @ can be squashed",
+                    "Yes, using 'jj squash -r <change-id> --into <dest>'",
+                    "Yes, but only if it has no descendants",
+                    "No, you must edit it first"
+                ],
+                correct: 1
+            },
+            {
+                category: "history-editing",
+                question: "What does 'jj prev' do by default?",
+                options: [
+                    "Edits the parent commit directly",
+                    "Shows the parent commit",
+                    "Creates a new working copy on the parent commit",
+                    "Deletes the current commit"
+                ],
+                correct: 2
+            },
+            {
+                category: "history-editing",
+                question: "When should you use 'jj prev --edit' instead of 'jj prev'?",
+                options: [
+                    "When you want to view the parent commit",
+                    "When you want to delete the parent commit",
+                    "When you want to directly edit the parent commit instead of creating a new working copy on it",
+                    "When the parent commit is immutable"
+                ],
+                correct: 2
+            },
+            {
+                category: "history-editing",
+                question: "What does 'jj next' do?",
+                options: [
+                    "Moves to the next branch",
+                    "Creates a new commit",
+                    "Moves to the child commit in a stack",
+                    "Pushes to the next remote"
+                ],
+                correct: 2
+            },
+
+            // ===== CATEGORY: Rebasing (8 questions) =====
+            {
+                category: "rebasing",
+                question: "What does 'jj rebase -d main@origin' do?",
+                options: [
+                    "Deletes your changes and resets to main",
+                    "Moves your changes to build on top of the latest main from origin",
+                    "Merges main into your current branch",
+                    "Creates a backup of main"
+                ],
+                correct: 1
+            },
+            {
+                category: "rebasing",
+                question: "What happens when 'jj rebase' encounters conflicts?",
+                options: [
+                    "The operation fails and must be aborted",
+                    "Jj automatically picks one side of the conflict",
+                    "The operation succeeds and the commit is marked as conflicted",
+                    "Jj stops and waits for resolution before continuing"
+                ],
+                correct: 2
+            },
+            {
+                category: "rebasing",
+                question: "Do you need to manually rebase descendants after editing a commit?",
+                options: [
+                    "Yes, always",
+                    "Yes, but only if there are conflicts",
+                    "No, jj automatically rebases all descendants",
+                    "Only if you use 'jj edit --rebase-descendants'"
+                ],
+                correct: 2
+            },
+            {
+                category: "rebasing",
+                question: "What is the '-d' flag in 'jj rebase -d <dest>'?",
+                options: [
+                    "Delete after rebase",
+                    "Destination - where to rebase onto",
+                    "Duplicate the commit",
+                    "Debug mode"
+                ],
+                correct: 1
+            },
+            {
+                category: "rebasing",
+                question: "Can you rebase onto a remote bookmark?",
+                options: [
+                    "No, only local bookmarks",
+                    "Yes, using syntax like 'main@origin'",
+                    "Yes, but you must fetch first",
+                    "No, you must create a local bookmark first"
+                ],
+                correct: 1
+            },
+            {
+                category: "rebasing",
+                question: "What happens if you try to rebase an immutable commit?",
+                options: [
+                    "It works normally",
+                    "Jj prevents the operation",
+                    "Only descendants are rebased",
+                    "Jj asks for confirmation"
+                ],
+                correct: 1
+            },
+            {
+                category: "rebasing",
+                question: "What is the benefit of jj's automatic descendant rebasing?",
+                options: [
+                    "It's faster than manual rebasing",
+                    "You can edit commits in the middle of a stack without manual rebasing",
+                    "It prevents conflicts",
+                    "It keeps the commit graph linear"
+                ],
+                correct: 1
+            },
+            {
+                category: "rebasing",
+                question: "After rebasing with conflicts, what must you do to continue?",
+                options: [
+                    "Run 'jj rebase --continue'",
+                    "Run 'jj commit'",
+                    "Nothing special - just resolve the conflicts and jj updates automatically",
+                    "Run 'jj resolve --complete'"
+                ],
+                correct: 2
+            },
+
+            // ===== CATEGORY: Git Commands (7 questions) =====
+            {
+                category: "git-commands",
+                question: "What does 'jj git fetch' do?",
+                options: [
+                    "Downloads changes from remote and updates bookmarks",
+                    "Pushes local changes to remote",
+                    "Converts a Git repository to jj",
+                    "Synchronizes only tags"
+                ],
+                correct: 0
+            },
+            {
+                category: "git-commands",
+                question: "When pushing a bookmark that already exists on the remote and has diverged, what happens?",
+                options: [
+                    "Jj automatically force pushes",
+                    "Jj fails and requires you to fetch first",
+                    "Jj merges the changes automatically",
+                    "Jj creates a new bookmark with a different name"
+                ],
+                correct: 1
+            },
+            {
+                category: "git-commands",
+                question: "What is 'jj git init --colocate' used for?",
+                options: [
+                    "Creating a jj-only repository",
+                    "Creating a repository with both .jj and .git directories that stay synchronized",
+                    "Converting Git history to jj format",
+                    "Initializing Git in a jj repository"
+                ],
+                correct: 1
+            },
+            {
+                category: "git-commands",
+                question: "What does 'jj git push --bookmark <name>' do?",
+                options: [
+                    "Pushes all bookmarks",
+                    "Pushes the specified bookmark to the remote",
+                    "Creates a new bookmark and pushes it",
+                    "Pushes and deletes the local bookmark"
+                ],
+                correct: 1
+            },
+            {
+                category: "git-commands",
+                question: "How does jj handle force pushes compared to Git?",
+                options: [
+                    "Jj requires explicit --force flag",
+                    "Jj checks remote state before pushing (like --force-with-lease), no force needed",
+                    "Jj never allows force pushes",
+                    "Jj always force pushes"
+                ],
+                correct: 1
+            },
+            {
+                category: "git-commands",
+                question: "What happens after you push a commit with 'jj git push'?",
+                options: [
+                    "The commit becomes mutable",
+                    "The commit becomes immutable and a new working copy is created on top",
+                    "Nothing changes",
+                    "The commit is deleted locally"
+                ],
+                correct: 1
+            },
+            {
+                category: "git-commands",
+                question: "Can you use 'jj git push --change @' without a bookmark?",
+                options: [
+                    "No, bookmarks are always required",
+                    "Yes, jj creates an auto-generated bookmark for the change",
+                    "Yes, but only for the first push",
+                    "No, you must create a bookmark first"
+                ],
+                correct: 1
+            },
+
+            // ===== CATEGORY: Conflict Resolution (7 questions) =====
+            {
+                category: "conflicts",
+                question: "What command would you use to resolve conflicts in a specific file using a merge tool?",
+                options: [
+                    "jj merge <file>",
+                    "jj resolve <file>",
+                    "jj conflict <file>",
+                    "jj fix <file>"
+                ],
+                correct: 1
+            },
+            {
+                category: "conflicts",
+                question: "What does 'jj resolve --list' show?",
+                options: [
+                    "All commits with conflicts",
+                    "All conflicted files in the working copy",
+                    "History of resolved conflicts",
+                    "Available merge tools"
+                ],
+                correct: 1
+            },
+            {
+                category: "conflicts",
+                question: "After resolving conflicts by editing files manually, what do you need to do?",
+                options: [
+                    "Run 'jj resolve --continue'",
+                    "Run 'jj commit'",
+                    "Nothing - the conflict is automatically resolved when you save the file",
+                    "Run 'jj rebase --continue'"
+                ],
+                correct: 2
+            },
+            {
+                category: "conflicts",
+                question: "What does 'jj resolve --tool=:ours' do?",
+                options: [
+                    "Uses our side for all conflicts automatically",
+                    "Opens our side in an editor",
+                    "Marks our side as preferred",
+                    "Compares our side with theirs"
+                ],
+                correct: 0
+            },
+            {
+                category: "conflicts",
+                question: "Can you commit a change that has unresolved conflicts?",
+                options: [
+                    "No, jj prevents it",
+                    "Yes, conflicts are first-class and can be committed",
+                    "Yes, but only with --force flag",
+                    "No, you must resolve them first"
+                ],
+                correct: 1
+            },
+            {
+                category: "conflicts",
+                question: "What are jj's conflict markers?",
+                options: [
+                    "<<<<<<< ======= >>>>>>>",
+                    "<<<<<<< %%%%%%% +++++++ >>>>>>>",
+                    "[[[[[[[ ======= ]]]]]]]",
+                    "<<<<<<< ------- >>>>>>>"
+                ],
+                correct: 1
+            },
+            {
+                category: "conflicts",
+                question: "What happens to descendants when you resolve a conflict in a commit?",
+                options: [
+                    "They must be manually updated",
+                    "They are deleted",
+                    "They automatically rebase with the resolution",
+                    "They remain unchanged"
+                ],
+                correct: 2
+            }
+        ];
+    </script>
+    <script src="quiz.js"></script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jujutsu VCS Tests</title>
+    <link rel="stylesheet" href="quiz.css">
+    <style>
+        .test-grid {
+            display: grid;
+            gap: 24px;
+            margin-top: 40px;
+        }
+
+        .test-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 32px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .test-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+        }
+
+        .test-card-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .test-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .test-icon.basics {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .test-icon.intermediate {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .test-icon.advanced {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .test-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin: 0;
+        }
+
+        .test-description {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .test-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+            color: #888;
+        }
+
+        .test-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .test-meta-item::before {
+            content: "•";
+            color: #667eea;
+            font-weight: 700;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .page-title {
+            font-size: 36px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .page-subtitle {
+            font-size: 18px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #e8eaf6 0%, #f3e5f5 100%);
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 40px;
+        }
+
+        .info-box h3 {
+            color: #667eea;
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+
+        .info-box p {
+            color: #555;
+            font-size: 15px;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .info-box ul {
+            margin: 12px 0 0 20px;
+            color: #555;
+            font-size: 15px;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">Jujutsu VCS Knowledge Tests</h1>
+            <p class="page-subtitle">Test your understanding of Jujutsu version control concepts and commands</p>
+            <p style="margin-top: 12px;">
+                <a href="cheatsheet.html" style="color: #667eea; text-decoration: none; font-weight: 600;">📋 View Command Cheatsheet</a>
+            </p>
+        </div>
+
+        <div class="test-grid">
+            <a href="01-basics.html" class="test-card">
+                <div class="test-card-header">
+                    <div class="test-icon basics">01</div>
+                    <h2 class="test-title">Basics Test</h2>
+                </div>
+                <p class="test-description">
+                    Master the fundamentals of Jujutsu: working copy model, change IDs vs commit IDs,
+                    basic commands, and core concepts like bookmarks and immutability.
+                </p>
+                <div class="test-meta">
+                    <span class="test-meta-item">10 questions</span>
+                    <span class="test-meta-item">4 topics</span>
+                </div>
+            </a>
+
+            <a href="02-intermediate.html" class="test-card">
+                <div class="test-card-header">
+                    <div class="test-icon intermediate">02</div>
+                    <h2 class="test-title">Intermediate Test</h2>
+                </div>
+                <p class="test-description">
+                    Advance your skills with history editing, rebasing workflows, jj git commands,
+                    and conflict resolution techniques.
+                </p>
+                <div class="test-meta">
+                    <span class="test-meta-item">10 questions</span>
+                    <span class="test-meta-item">4 topics</span>
+                </div>
+            </a>
+
+            <a href="03-advanced.html" class="test-card">
+                <div class="test-card-header">
+                    <div class="test-icon advanced">03</div>
+                    <h2 class="test-title">Advanced Test</h2>
+                </div>
+                <p class="test-description">
+                    Master power features like absorb, parallelize, and bisect. Learn operation logs,
+                    revsets, and advanced workflows for complex scenarios.
+                </p>
+                <div class="test-meta">
+                    <span class="test-meta-item">10 questions</span>
+                    <span class="test-meta-item">4 topics</span>
+                </div>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

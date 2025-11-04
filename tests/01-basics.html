@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jujutsu VCS Basics Test</title>
+    <link rel="stylesheet" href="quiz.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Jujutsu VCS Basics Test</h1>
+        <p class="subtitle">Test your knowledge of Jujutsu fundamentals</p>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div id="questionsContainer"></div>
+
+        <div class="results" id="results">
+            <div class="score" id="score"></div>
+            <div class="score-message" id="scoreMessage"></div>
+            <div style="display: flex; gap: 12px; justify-content: center; margin-top: 20px; flex-wrap: wrap;">
+                <button onclick="restartQuiz()" class="restart-button">Re-test This Level</button>
+                <button onclick="window.location.href='02-intermediate.html'" class="restart-button">Try the Next Level</button>
+                <button onclick="window.location.href='index.html'" class="restart-button secondary">Back to Tests</button>
+            </div>
+            <div class="answer-review" id="answerReview"></div>
+        </div>
+
+        <div class="navigation" id="navigation">
+            <button onclick="previousQuestion()" id="prevBtn" class="secondary">Previous</button>
+            <button onclick="nextQuestion()" id="nextBtn">Next</button>
+        </div>
+    </div>
+
+    <script>
+        // Question Bank - 30 questions organized by category
+        const questionBank = [
+            // ===== CATEGORY: Working Copy (8 questions) =====
+            {
+                category: "working-copy",
+                question: "What is the fundamental difference between jj and Git regarding the working copy?",
+                options: [
+                    "jj uses a staging area like Git",
+                    "jj's working copy IS a commit, with no staging area",
+                    "jj requires manual commits after every change",
+                    "jj automatically pushes changes to remote"
+                ],
+                correct: 1
+            },
+            {
+                category: "working-copy",
+                question: "What symbol represents the current working copy commit in jj?",
+                options: [
+                    "#",
+                    "@",
+                    "*",
+                    "~"
+                ],
+                correct: 1
+            },
+            {
+                category: "working-copy",
+                question: "What happens every time you run a jj command?",
+                options: [
+                    "Changes are pushed to remote",
+                    "A new commit is created",
+                    "The working directory is automatically snapshots and amends the @ commit",
+                    "All uncommitted changes are discarded"
+                ],
+                correct: 2
+            },
+            {
+                category: "working-copy",
+                question: "Which Git command is eliminated by jj's working copy model?",
+                options: [
+                    "git commit",
+                    "git push",
+                    "git add",
+                    "git pull"
+                ],
+                correct: 2
+            },
+            {
+                category: "working-copy",
+                question: "In jj, what does 'jj status' show?",
+                options: [
+                    "Only staged changes",
+                    "Only unstaged changes",
+                    "Changes in the working copy commit (@)",
+                    "All commits in the repository"
+                ],
+                correct: 2
+            },
+            {
+                category: "working-copy",
+                question: "What does '@-' represent in jj?",
+                options: [
+                    "The next commit",
+                    "The parent of the working copy",
+                    "A conflicted commit",
+                    "The remote tracking branch"
+                ],
+                correct: 1
+            },
+            {
+                category: "working-copy",
+                question: "Does jj have a staging area?",
+                options: [
+                    "Yes, it works like Git's staging area",
+                    "Yes, but it's optional",
+                    "No, the working copy IS a commit",
+                    "No, but you can enable one in config"
+                ],
+                correct: 2
+            },
+            {
+                category: "working-copy",
+                question: "What is required before you can see your changes in 'jj log'?",
+                options: [
+                    "Run 'jj add'",
+                    "Run 'jj stage'",
+                    "Run 'jj commit'",
+                    "Nothing - changes are automatically in @ and visible in log"
+                ],
+                correct: 3
+            },
+
+            // ===== CATEGORY: Change IDs and Commit IDs (8 questions) =====
+            {
+                category: "ids",
+                question: "What are the two types of IDs that jj tracks for each commit?",
+                options: [
+                    "Branch ID and Tag ID",
+                    "Local ID and Remote ID",
+                    "Change ID and Commit ID",
+                    "Author ID and Committer ID"
+                ],
+                correct: 2
+            },
+            {
+                category: "ids",
+                question: "What stays stable when you amend a commit in jj?",
+                options: [
+                    "The Commit ID",
+                    "The Change ID",
+                    "Both IDs",
+                    "Neither ID"
+                ],
+                correct: 1
+            },
+            {
+                category: "ids",
+                question: "When does a Commit ID change?",
+                options: [
+                    "Never",
+                    "Only when pushing to remote",
+                    "Every time you modify the commit",
+                    "Only when you rename the commit"
+                ],
+                correct: 2
+            },
+            {
+                category: "ids",
+                question: "Why does jj use both Change IDs and Commit IDs?",
+                options: [
+                    "For backward compatibility with Git",
+                    "Change IDs track logical work across rewrites, Commit IDs identify exact snapshots",
+                    "One for local, one for remote",
+                    "Change IDs are temporary, Commit IDs are permanent"
+                ],
+                correct: 1
+            },
+            {
+                category: "ids",
+                question: "In 'jj log' output, which ID appears first?",
+                options: [
+                    "Commit ID",
+                    "Change ID",
+                    "They appear in random order",
+                    "Only one ID is shown"
+                ],
+                correct: 1
+            },
+            {
+                category: "ids",
+                question: "What do Change IDs eliminate the need for?",
+                options: [
+                    "Commit messages",
+                    "Branches in the way Git uses them",
+                    "Remote repositories",
+                    "Merge commits"
+                ],
+                correct: 1
+            },
+            {
+                category: "ids",
+                question: "Can you reference commits by Change ID in jj commands?",
+                options: [
+                    "No, only Commit IDs work",
+                    "Yes, Change IDs are the preferred way",
+                    "Only in some commands",
+                    "Only after configuring it"
+                ],
+                correct: 1
+            },
+            {
+                category: "ids",
+                question: "How many characters of a Change ID do you typically need to use?",
+                options: [
+                    "All of them",
+                    "At least 20",
+                    "Just enough to be unique (usually 8-12)",
+                    "Exactly 7"
+                ],
+                correct: 2
+            },
+
+            // ===== CATEGORY: Basic Commands (7 questions) =====
+            {
+                category: "commands",
+                question: "Which command is most similar to 'git commit' in jj?",
+                options: [
+                    "jj new",
+                    "jj describe",
+                    "jj commit -m \"message\"",
+                    "jj squash"
+                ],
+                correct: 2
+            },
+            {
+                category: "commands",
+                question: "What does 'jj new' do?",
+                options: [
+                    "Creates a new repository",
+                    "Creates a new branch",
+                    "Finishes the current commit and creates a new empty one on top",
+                    "Discards all uncommitted changes"
+                ],
+                correct: 2
+            },
+            {
+                category: "commands",
+                question: "What is 'jj commit -m \"message\"' a shortcut for?",
+                options: [
+                    "jj new -m \"message\"",
+                    "jj describe -m \"message\" followed by jj new",
+                    "jj push -m \"message\"",
+                    "jj squash -m \"message\""
+                ],
+                correct: 1
+            },
+            {
+                category: "commands",
+                question: "What does 'jj describe -m \"message\"' do?",
+                options: [
+                    "Creates a new commit with a message",
+                    "Sets or updates the commit message for @",
+                    "Shows the description of a commit",
+                    "Describes the repository"
+                ],
+                correct: 1
+            },
+            {
+                category: "commands",
+                question: "What command would you use to undo the last jj operation?",
+                options: [
+                    "jj revert",
+                    "jj undo",
+                    "jj reset",
+                    "jj rollback"
+                ],
+                correct: 1
+            },
+            {
+                category: "commands",
+                question: "What does 'jj edit <change-id>' do?",
+                options: [
+                    "Opens an editor for the commit message",
+                    "Makes the specified commit the working copy",
+                    "Deletes the commit",
+                    "Merges the commit"
+                ],
+                correct: 1
+            },
+            {
+                category: "commands",
+                question: "How do you view the commit graph in jj?",
+                options: [
+                    "jj graph",
+                    "jj log",
+                    "jj show",
+                    "jj tree"
+                ],
+                correct: 1
+            },
+
+            // ===== CATEGORY: Core Concepts (7 questions) =====
+            {
+                category: "concepts",
+                question: "How are bookmarks in jj different from Git branches?",
+                options: [
+                    "Bookmarks cannot be pushed to remotes",
+                    "Bookmarks automatically move with commits during rebasing",
+                    "Bookmarks are read-only",
+                    "There is no difference"
+                ],
+                correct: 1
+            },
+            {
+                category: "concepts",
+                question: "What are immutable commits in jj?",
+                options: [
+                    "Commits that cannot be deleted",
+                    "Commits protected from rewriting (trunk, tags, remote commits)",
+                    "Commits without a message",
+                    "Commits that are automatically backed up"
+                ],
+                correct: 1
+            },
+            {
+                category: "concepts",
+                question: "What flag is required when pushing a new bookmark for the first time?",
+                options: [
+                    "--force",
+                    "--new",
+                    "--allow-new",
+                    "--create"
+                ],
+                correct: 2
+            },
+            {
+                category: "concepts",
+                question: "What does jj do with conflicts during a rebase?",
+                options: [
+                    "Fails and stops the operation",
+                    "Automatically picks one side",
+                    "Allows the operation to succeed and commits can have conflicts",
+                    "Requires immediate resolution before continuing"
+                ],
+                correct: 2
+            },
+            {
+                category: "concepts",
+                question: "Is there an 'active' bookmark in jj like Git's current branch?",
+                options: [
+                    "Yes, shown with an asterisk",
+                    "Yes, but only after checkout",
+                    "No, you work with commits directly via change IDs",
+                    "Yes, it's the one you last created"
+                ],
+                correct: 2
+            },
+            {
+                category: "concepts",
+                question: "What is a co-located repository?",
+                options: [
+                    "A repository with multiple remotes",
+                    "A repository with both .jj and .git directories that stay synchronized",
+                    "A repository shared by multiple users",
+                    "A repository that uses both branches and bookmarks"
+                ],
+                correct: 1
+            },
+            {
+                category: "concepts",
+                question: "In a co-located repo, what will Git show as the branch status?",
+                options: [
+                    "The current bookmark name",
+                    "main",
+                    "detached HEAD (this is normal and expected)",
+                    "An error message"
+                ],
+                correct: 2
+            }
+        ];
+    </script>
+    <script src="quiz.js"></script>
+</body>
+</html>
