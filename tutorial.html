@@ -1267,6 +1267,41 @@ jj duplicate -d main &lt;change-id&gt;   # Duplicate commit onto a different bas
             e.preventDefault();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
+
+        // Smooth scroll for TOC links with highlight animation
+        document.querySelectorAll('.toc a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+
+                if (targetElement) {
+                    // Smooth scroll to target
+                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                    // Add highlight animation
+                    targetElement.style.animation = 'none';
+                    setTimeout(() => {
+                        targetElement.style.animation = 'highlightSection 1.5s ease-out';
+                    }, 100);
+                }
+            });
+        });
     </script>
+    <style>
+        @keyframes highlightSection {
+            0% {
+                background: linear-gradient(90deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+                transform: translateX(-10px);
+            }
+            50% {
+                background: linear-gradient(90deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+            }
+            100% {
+                background: transparent;
+                transform: translateX(0);
+            }
+        }
+    </style>
 </body>
 </html>
